@@ -37,13 +37,27 @@ export function hasAny(input: string, patterns: RegExp[]): boolean {
 
 export function extractUrls(input: string): string[] {
   const matches = input.match(/(?:https?:\/\/|www\.)[^\s<>'"`]+/giu) ?? [];
-  return Array.from(
-    new Set(
-      matches
-        .map((value) => value.replace(/[),.;!?]+$/u, ""))
-        .filter(Boolean),
-    ),
-  );
+  return matches
+    .flatMap(splitAdjacentUrlCandidates)
+    .map((value) => value.replace(/[),.;!?]+$/u, ""))
+    .filter(Boolean);
+}
+
+function splitAdjacentUrlCandidates(value: string): string[] {
+  const starts = Array.from(value.matchAll(/(?:https?:\/\/|www\.)/giu))
+    .map((match) => ({ index: match.index ?? 0, isWww: match[0].toLowerCase() === "www." }))
+    .filter(({ index, isWww }) => index > 0 && (isWww ? /[,;!?)]/u : /[,.;!?)]/u).test(value[index - 1] ?? ""))
+    .map(({ index }) => index);
+  if (starts.length === 0) return [value];
+
+  const parts: string[] = [];
+  let partStart = 0;
+  for (const start of starts) {
+    parts.push(value.slice(partStart, start));
+    partStart = start;
+  }
+  parts.push(value.slice(partStart));
+  return parts;
 }
 
 export function uniqueStrings(values: string[]): string[] {

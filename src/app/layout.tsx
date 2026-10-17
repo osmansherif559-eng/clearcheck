@@ -31,7 +31,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
     <html lang="en" suppressHydrationWarning>
       <head><script dangerouslySetInnerHTML={{ __html: themeScript }} /></head>
       <body>
-        <ThemeProvider><a className="skip-link" href="#main-content">Skip to content</a><Header /><div id="main-content">{children}</div><InstallPrompt /><footer className="site-footer"><div className="shell footer-inner"><Link className="footer-brand" href="/"><span className="brand-symbol"><Icon name="shield-check" size={16} /></span><span>ClearCheck</span></Link><p>Local-first analysis for clearer, safer decisions.</p><div className="footer-links"><Link href="/learn">Learn</Link><Link href="/privacy">Privacy</Link><Link href="/about">Limitations</Link></div></div></footer><ServiceWorkerRegister /></ThemeProvider>
+        <ThemeProvider><a className="skip-link" href="#main-content">Skip to content</a><Header /><div id="main-content">{children}</div><InstallPrompt /><footer className="site-footer"><div className="shell footer-inner"><Link className="footer-brand" href="/"><span className="brand-symbol"><Icon name="shield-check" size={16} /></span><span>ClearCheck</span></Link><p>Local-first analysis for clearer, safer decisions.</p><div className="footer-links"><Link href="/recover">Recovery</Link><Link href="/learn">Learn</Link><Link href="/privacy">Privacy</Link><Link href="/about">Limitations</Link></div></div></footer><ServiceWorkerRegister /></ThemeProvider>
       </body>
     </html>
   );

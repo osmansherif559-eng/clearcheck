@@ -21,6 +21,22 @@ export interface Finding {
   limitations?: string;
 }
 
+export interface HostnameBreakdown {
+  hostname: string;
+  labels: string[];
+  labelCount: number;
+  isIpAddress: boolean;
+}
+
+export interface AnalyzedLink {
+  url: string;
+  hostname: string | null;
+  hostnameBreakdown: HostnameBreakdown | null;
+  findings: Finding[];
+  observations: Observation[];
+  unknowns: string[];
+}
+
 export interface AnalysisResult {
   assessment: Assessment;
   summary: string;
@@ -28,6 +44,7 @@ export interface AnalysisResult {
   findings: Finding[];
   observations: Observation[];
   unknowns: string[];
+  analyzedLinks: AnalyzedLink[];
   recommendedActions: string[];
   rulesetVersion: string;
 }

@@ -11,12 +11,16 @@ ClearCheck is a privacy-first message and link investigation tool. It explains s
 - Three qualified assessments: **High concern**, **Needs caution**, and **No major indicators found**.
 - Context-specific actions and explicit unknowns instead of unsupported safety or scam probabilities.
 - Responsive checker UI with auto-detect, message, and URL modes.
+- Multi-input investigation: pasted messages/URLs plus local screenshot OCR and QR inspection with an editable review step.
+- Every embedded HTTP/HTTPS link is analyzed separately with hostname breakdowns and exact URL evidence.
+- A local recovery coach covers credential, OTP, financial, payment, download, opened-link, and uncertain incidents with prioritized checklists.
 - Polished light and dark themes with system preference detection and local preference persistence.
 - Mobile navigation, touch-sized controls, safe-area support, reduced-motion support, and no-zoom viewport behavior.
 - Installable PWA metadata, original ClearCheck icons, a scoped service worker, offline shell fallback, and install guidance for Android and iOS Safari.
-- Sample cases, reset, copy report, print report, and accessible keyboard focus states.
+- Sample cases, reset, copy report with explicit original-content choice, print report, recovery entry points, and accessible keyboard focus states.
 - Learn, Privacy, and About pages.
 - No account, database, history, external AI, reputation API, URL fetching, analytics, or third-party font requests.
+- OCR uses locally served, pinned Tesseract.js worker/core/English model assets; QR decoding uses the locally bundled `jsqr` library. No image, OCR text, or QR payload is transmitted.
 
 ## Requirements
 
@@ -87,10 +91,21 @@ src/lib/analysis/message-rules.ts
 src/lib/analysis/url-analysis.ts
                                 standard URL parser and URL rules
 src/components/checker/         input workflow and local state
-src/components/results/         evidence-linked report
+src/components/results/         evidence-linked report and link breakdown
+src/components/recovery/        local incident recovery checklists
+src/lib/image-inspection.ts     file validation and image payload helpers
+public/ocr/tesseract/           pinned local OCR worker, WASM cores, and English model
 ```
 
-The browser never opens or fetches a submitted URL. For a message containing a link, ClearCheck parses the visible URL text and reports what can be observed locally.
+The browser never opens or fetches a submitted URL. For a message containing links, ClearCheck parses every visible HTTP/HTTPS URL and reports what can be observed locally for each one.
+
+## Screenshot and QR privacy
+
+Screenshots are limited to 8 MB and PNG, JPEG, or WebP. The selected file is represented by a temporary object URL and is released when the file changes or the component leaves the page. OCR runs in a browser worker with assets served from this repository under `public/ocr/tesseract/`; QR decoding runs in the browser with `jsqr`. The extracted text and QR payload are shown in editable review controls before analysis. ClearCheck never opens a decoded QR destination. OCR assets can take several megabytes on first use, especially on a phone; after they have been loaded, the service worker can cache same-origin OCR assets for later use.
+
+## Recovery coach
+
+Use **Recovery** in the header or the **What happened next?** entry after an investigation. Select the closest incident, then work through the prioritized checklist. Guidance tells you why each step matters and repeatedly directs you to independently obtained official channels. ClearCheck does not promise recovery, fabricate contact details, store incident history, or contact any provider for you.
 
 ## PWA installation and offline behavior
 

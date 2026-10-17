@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import path from "node:path";
 
 test.describe("ClearCheck browser workflow", () => {
   test("loads real CSS and supports theme switching", async ({ page }) => {
@@ -66,6 +67,44 @@ test.describe("ClearCheck browser workflow", () => {
     await page.getByRole("button", { name: /Analyze safely/ }).click();
     await expect(page.getByRole("heading", { name: "High concern" })).toBeVisible();
     expect(requests.filter((url) => !url.startsWith("http://127.0.0.1:3106/")).length).toBe(0);
+  });
+
+  test("supports the local screenshot and QR review entry point", async ({ page }) => {
+    await page.goto("/check");
+    await page.getByRole("button", { name: /Screenshot or QR/ }).click();
+    const fileInput = page.locator('input[type="file"]');
+    await fileInput.setInputFiles(path.join(process.cwd(), "public/icons/icon-192.png"));
+    await expect(page.getByAltText("Local preview of the selected suspicious message image")).toBeVisible();
+    await page.getByRole("button", { name: "Find QR code" }).click();
+    await expect(page.getByText(/No QR code was detected/)).toBeVisible();
+  });
+
+  test("runs OCR locally and exposes an editable review before analysis", async ({ page }) => {
+    test.setTimeout(120_000);
+    await page.goto("/check");
+    await page.getByRole("button", { name: /Screenshot or QR/ }).click();
+    const filePath = "/tmp/clearcheck-browser-ocr.png";
+    await page.screenshot({ path: filePath, fullPage: false });
+    const requests = [];
+    page.on("request", (request) => requests.push(request.url()));
+    await page.locator('input[type="file"]').setInputFiles(filePath);
+    await page.getByRole("button", { name: "Read screenshot" }).click();
+    await expect(page.locator("#ocr-review")).toBeVisible({ timeout: 100_000 });
+    await expect(page.locator("#ocr-review")).not.toHaveValue("");
+    expect(requests.some((url) => /jsdelivr|unpkg|tesseract.*cdn/i.test(url))).toBe(false);
+    const nonLocalRequests = requests.filter((url) => !url.startsWith("http://127.0.0.1:3106/"));
+    expect(nonLocalRequests.every((url) => url.startsWith("blob:http://127.0.0.1:3106/"))).toBe(true);
+  });
+
+  test("guides recovery with scenario selection and checklist progress", async ({ page }) => {
+    await page.goto("/recover");
+    await page.getByRole("button", { name: /Shared credentials/ }).click();
+    await expect(page.getByRole("heading", { name: "Shared credentials" })).toBeVisible();
+    const firstStep = page.locator("label.recovery-step").first();
+    await firstStep.click();
+    await expect(page.getByText("1 / 4 complete")).toBeVisible();
+    await page.getByRole("button", { name: "Start over" }).click();
+    await expect(page.getByRole("button", { name: /Shared credentials/ })).toBeVisible();
   });
 });
 

@@ -5,6 +5,8 @@ import { analyze, validateInput } from "@/lib/analysis/analyze";
 import type { AnalysisMode, AnalysisResult } from "@/lib/analysis/types";
 import ResultReport from "@/components/results/ResultReport";
 import Icon, { type IconName } from "@/components/ui/Icon";
+import ImageInspector from "./ImageInspector";
+import RecoveryCoach from "@/components/recovery/RecoveryCoach";
 
 type Sample = { label: string; description: string; input: string; mode: AnalysisMode; tone: string; icon: IconName };
 
@@ -44,6 +46,7 @@ const samples: Sample[] = [
 ];
 
 export default function Checker() {
+  const [inputMethod, setInputMethod] = useState<"text" | "image">("text");
   const [input, setInput] = useState("");
   const [mode, setMode] = useState<AnalysisMode>("auto");
   const [result, setResult] = useState<AnalysisResult | null>(null);
@@ -89,7 +92,7 @@ export default function Checker() {
     setCopied(false);
   }
 
-  async function copyReport() {
+  async function copyReport(includeInput: boolean) {
     if (!result) return;
     const lines = [
       `ClearCheck assessment: ${result.assessment.replaceAll("_", " ")}`,
@@ -105,6 +108,7 @@ export default function Checker() {
       "Unknowns:",
       ...result.unknowns.map((unknown) => `- ${unknown}`),
     ];
+    if (includeInput) lines.unshift("Submitted content:\n" + input, "");
     try {
       await navigator.clipboard.writeText(lines.join("\n"));
       setCopied(true);
@@ -116,7 +120,8 @@ export default function Checker() {
 
   return (
     <div className="checker-wrap">
-      <div className="checker-card">
+      <div className="checker-methods" role="group" aria-label="Investigation input type"><button className={inputMethod === "text" ? "checker-method active" : "checker-method"} type="button" onClick={() => setInputMethod("text")}><Icon name="message" size={16} /> Message or URL</button><button className={inputMethod === "image" ? "checker-method active" : "checker-method"} type="button" onClick={() => setInputMethod("image")}><Icon name="eye" size={16} /> Screenshot or QR</button></div>
+      {inputMethod === "text" ? <div className="checker-card">
         <div className="checker-card-top">
           <div><span className="section-kicker">Start here</span><h2>What did you receive?</h2></div>
           <span className="local-badge"><span>●</span> Local analysis</span>
@@ -132,14 +137,15 @@ export default function Checker() {
           <div className="checker-actions"><button className="primary-button" type="submit">{mode === "url" ? "Inspect URL" : "Analyze safely"}<Icon name="arrow-up-right" size={17} /></button><button className="quiet-button" type="button" onClick={reset} disabled={!input && !result}><Icon name="refresh" size={15} /> Clear</button></div>
         </form>
         <p className="privacy-note"><span aria-hidden="true">⌁</span> Your input stays in this browser. Nothing is saved or sent to an external AI service.</p>
-      </div>
+      </div> : <ImageInspector onAnalyze={(nextInput, nextMode) => { setInput(nextInput); setMode(nextMode); setInputMethod("text"); setResult(analyze(nextInput, nextMode)); setError(null); }} />}
 
-      <div className="samples-block">
+      {inputMethod === "text" && <div className="samples-block">
         <div className="samples-heading"><div><span className="section-kicker">Try a sample</span><h2>See how the signals work</h2></div><span className="samples-note">Safe examples, no real links</span></div>
         <div className="sample-grid">{samples.map((sample) => <button className="sample-card" key={sample.label} type="button" onClick={() => loadSample(sample)}><span className={`sample-icon ${sample.tone}`}><Icon name={sample.icon} size={16} /></span><span><strong>{sample.label}</strong><small>{sample.description}</small></span><span className="sample-arrow" aria-hidden="true"><Icon name="arrow-up-right" size={16} /></span></button>)}</div>
-      </div>
+      </div>}
 
-      {result && <ResultReport result={result} onCopy={copyReport} copied={copied} onPrint={() => window.print()} onReset={reset} />}
+      {result && <ResultReport result={result} originalInput={input} onCopy={copyReport} copied={copied} onPrint={() => window.print()} onReset={reset} onRecovery={() => document.getElementById("recovery-coach")?.scrollIntoView({ behavior: "smooth", block: "start" })} />}
+      <RecoveryCoach compact />
     </div>
   );
 }

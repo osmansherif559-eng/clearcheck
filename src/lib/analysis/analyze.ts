@@ -1,6 +1,6 @@
 import { analyzeMessage } from "./message-rules";
 import { analyzeUrl, analyzeUrlsInText } from "./url-analysis";
-import { AnalysisInputError, RULESET_VERSION, type AnalysisMode, type AnalysisResult, type Finding, type Observation, type ResolvedMode } from "./types";
+import { AnalysisInputError, RULESET_VERSION, type AnalyzedLink, type AnalysisMode, type AnalysisResult, type Finding, type Observation, type ResolvedMode } from "./types";
 import { extractUrls, MAX_INPUT_LENGTH, uniqueStrings } from "./helpers";
 
 export function validateInput(input: string, mode: AnalysisMode): string | undefined {
@@ -37,18 +37,28 @@ export function analyze(input: string, mode: AnalysisMode = "auto"): AnalysisRes
   let findings: Finding[] = [];
   let observations: Observation[] = [];
   let unknowns: string[] = [];
+  let analyzedLinks: AnalyzedLink[] = [];
 
   if (resolvedMode === "url") {
     const result = analyzeUrl(input.trim());
     findings = result.findings;
     observations = result.observations;
     unknowns = result.unknowns;
+    analyzedLinks = [{
+      url: input.trim(),
+      hostname: result.hostname,
+      hostnameBreakdown: result.hostnameBreakdown,
+      findings: result.findings,
+      observations: result.observations,
+      unknowns: result.unknowns,
+    }];
   } else {
     const message = analyzeMessage(input);
     const urls = analyzeUrlsInText(input);
     findings = [...message.findings, ...urls.findings];
     observations = [...message.observations, ...urls.observations];
     unknowns = [...message.unknowns, ...urls.unknowns];
+    analyzedLinks = urls.analyzedLinks;
   }
 
   const assessment = assessmentFor(findings);
@@ -66,6 +76,7 @@ export function analyze(input: string, mode: AnalysisMode = "auto"): AnalysisRes
     findings,
     observations,
     unknowns: uniqueStrings(unknowns),
+    analyzedLinks,
     recommendedActions,
     rulesetVersion: RULESET_VERSION,
   };

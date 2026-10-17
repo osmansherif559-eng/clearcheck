@@ -62,8 +62,8 @@ export default function ServiceWorkerRegister() {
         clearTimeout(timer);
         channel?.port1.close();
         const data = event.data;
-        update(data?.type === STATUS_MESSAGE && data.version === "v2" && data.ready === true &&
-          data.routes?.includes("/") && data.routes?.includes("/check") ? "ready" : "unavailable");
+         update(data?.type === STATUS_MESSAGE && data.version === "v3" && data.ready === true &&
+       data.routes?.includes("/") && data.routes?.includes("/check") && data.routes?.includes("/recover") ? "ready" : "unavailable");
       };
       timer = setTimeout(() => update("unavailable"), 8000);
       controller.postMessage({ type: STATUS_MESSAGE }, [channel.port2]);

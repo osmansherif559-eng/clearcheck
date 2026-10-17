@@ -1,8 +1,8 @@
 // Bump this version when changing the shell or caching policy.
-const VERSION = "v2";
+const VERSION = "v3";
 const CACHE_PREFIX = "clearcheck-shell-";
 const CACHE_NAME = `${CACHE_PREFIX}${VERSION}`;
-const SAFE_ROUTES = ["/", "/check", "/learn", "/privacy", "/about"];
+const SAFE_ROUTES = ["/", "/check", "/recover", "/learn", "/privacy", "/about"];
 const PUBLIC_FILES = [
   "/offline.html",
   "/manifest.webmanifest",
@@ -17,6 +17,12 @@ const STATUS_MESSAGE = "CLEARCHECK_OFFLINE_STATUS";
 function isStaticAsset(url) {
   return url.origin === self.location.origin && !url.search &&
     /^\/_next\/static\/[a-zA-Z0-9_./-]+\.(?:js|css|woff2?|ttf|otf)$/.test(url.pathname) &&
+    !url.pathname.split("/").includes("..");
+}
+
+function isLocalOcrAsset(url) {
+  return url.origin === self.location.origin && !url.search &&
+    /^\/ocr\/tesseract\/[a-zA-Z0-9_./-]+\.(?:js|wasm|gz)$/.test(url.pathname) &&
     !url.pathname.split("/").includes("..");
 }
 
@@ -151,7 +157,7 @@ self.addEventListener("fetch", (event) => {
       return await cache.match(url.pathname) || await cache.match("/offline.html") ||
         new Response("ClearCheck is unavailable offline. Reconnect and try again.", { status: 503 });
     }));
-  } else if (isStaticAsset(url)) {
+  } else if (isStaticAsset(url) || isLocalOcrAsset(url)) {
     event.respondWith((async () => {
       const cache = await caches.open(CACHE_NAME);
       const cached = await cache.match(url.href);

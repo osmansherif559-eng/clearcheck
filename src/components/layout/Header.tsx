@@ -5,7 +5,7 @@ import { useState } from "react";
 import Icon from "@/components/ui/Icon";
 import ThemeToggle from "./ThemeToggle";
 
-const links = [{ href: "/check", label: "Investigate" }, { href: "/learn", label: "Learn" }, { href: "/privacy", label: "Privacy" }, { href: "/about", label: "About" }];
+const links = [{ href: "/check", label: "Investigate" }, { href: "/recover", label: "Recovery" }, { href: "/learn", label: "Learn" }, { href: "/privacy", label: "Privacy" }, { href: "/about", label: "About" }];
 
 function Brand() {
   return <><span className="brand-symbol" aria-hidden="true"><Icon name="shield-check" size={18} strokeWidth={2.3} /></span><span>ClearCheck</span></>;

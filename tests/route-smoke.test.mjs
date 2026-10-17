@@ -10,6 +10,7 @@ const nextBin = path.join(projectRoot, "node_modules", "next", "dist", "bin", "n
 const routes = [
   ["/", "Know the warning signs"],
   ["/check", "What are you unsure about?"],
+  ["/recover", "Something happened."],
   ["/learn", "Small details are worth a pause."],
   ["/privacy", "Your message is yours."],
   ["/about", "Indicators are not proof."],
