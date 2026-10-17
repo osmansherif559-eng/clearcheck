@@ -11,9 +11,12 @@ ClearCheck is a privacy-first message and link investigation tool. It explains s
 - Three qualified assessments: **High concern**, **Needs caution**, and **No major indicators found**.
 - Context-specific actions and explicit unknowns instead of unsupported safety or scam probabilities.
 - Responsive checker UI with auto-detect, message, and URL modes.
+- Polished light and dark themes with system preference detection and local preference persistence.
+- Mobile navigation, touch-sized controls, safe-area support, reduced-motion support, and no-zoom viewport behavior.
+- Installable PWA metadata, original ClearCheck icons, a scoped service worker, offline shell fallback, and install guidance for Android and iOS Safari.
 - Sample cases, reset, copy report, print report, and accessible keyboard focus states.
 - Learn, Privacy, and About pages.
-- No account, database, history, external AI, reputation API, URL fetching, analytics, or third-party fonts.
+- No account, database, history, external AI, reputation API, URL fetching, analytics, or third-party font requests.
 
 ## Requirements
 
@@ -51,7 +54,10 @@ Additional project checks:
 npm run typecheck
 npm run lint
 npm run build
+npm run test:e2e
 ```
+
+The browser suite starts the production server and verifies CSS rendering, theme switching, mobile navigation, responsive overflow, the sample/analyze/reset flow, no external requests during local analysis, manifest/icon delivery, and offline reload after service-worker preparation. Chromium must be installed for the browser suite; `npx playwright install chromium` is the supported setup command.
 
 ## Production run
 
@@ -85,6 +91,16 @@ src/components/results/         evidence-linked report
 ```
 
 The browser never opens or fetches a submitted URL. For a message containing a link, ClearCheck parses the visible URL text and reports what can be observed locally.
+
+## PWA installation and offline behavior
+
+ClearCheck is an installable web app, not a native App Store or Google Play application. On supported browsers, use the in-app install prompt or the browser's install menu. On Android Chrome, open the menu and choose **Install app** or **Add to Home screen**. On iPhone/iPad, open the site in Safari, tap **Share**, choose **Add to Home Screen**, and confirm **Add**.
+
+The service worker caches an explicit public app shell and immutable Next static assets. After the production app reports **Offline ready**, the Home and Check routes can reload without a connection. User messages, reports, query-bearing requests, RSC requests, authenticated requests, and non-GET requests are not cached. Offline behavior must still be rechecked on the target browser and deployment; browser storage may be cleared or evicted.
+
+## Design and accessibility
+
+The interface uses centralized semantic design tokens in `src/app/globals.css`. The theme is applied before hydration to reduce flicker, and the interactive theme control persists `light` or `dark` locally while respecting the system preference by default. Keyboard focus rings, skip navigation, semantic labels, accessible status messages, reduced-motion handling, contrast-aware severity styling, and touch-friendly mobile controls are included.
 
 ## Limitations
 

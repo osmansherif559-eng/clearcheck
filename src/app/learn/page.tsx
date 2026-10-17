@@ -1,3 +1,5 @@
+import Icon from "@/components/ui/Icon";
+
 const guides = [
   { number: "01", title: "Phishing messages", body: "Unexpected urgency, requests for codes, and threats to close an account are common pressure tactics. Pause and verify through a known channel." },
   { number: "02", title: "Suspicious links", body: "Read a hostname from right to left. A brand name in a subdomain or path does not make the destination official. HTTPS only encrypts the connection." },
@@ -12,7 +14,7 @@ export default function LearnPage() {
       <div className="guide-grid">
         {guides.map((guide) => <article className="guide-card" key={guide.number}><span className="guide-number">{guide.number}</span><h2>{guide.title}</h2><p>{guide.body}</p></article>)}
       </div>
-      <div className="learn-callout"><span className="callout-icon">✓</span><div><h2>When in doubt, change the channel.</h2><p>Do not use the phone number, link, or reply address in the suspicious message. Find the organization independently through a trusted source.</p></div></div>
+      <div className="learn-callout"><span className="callout-icon"><Icon name="shield-check" size={17} /></span><div><h2>When in doubt, change the channel.</h2><p>Do not use the phone number, link, or reply address in the suspicious message. Find the organization independently through a trusted source.</p></div></div>
     </main>
   );
 }
