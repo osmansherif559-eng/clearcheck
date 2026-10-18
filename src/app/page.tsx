@@ -5,19 +5,15 @@ import Icon from "@/components/ui/Icon";
 export default function HomePage() {
   return (
     <main>
-      <section className="hero shell">
-        <div className="hero-copy">
-          <div className="eyebrow"><span className="eyebrow-dot" /> Private by default</div>
-          <h1>Know the warning signs <em>before</em> you act.</h1>
-          <p className="hero-lede">ClearCheck helps you understand suspicious messages and links with evidence you can actually see—not a mysterious score.</p>
-          <div className="trust-row"><Icon name="lock" size={15} /> Analyze locally in your browser <span className="trust-divider" /> No account or history</div>
+      <section className="home-product shell" aria-labelledby="home-title">
+        <div className="home-product-copy">
+          <span className="eyebrow"><span className="eyebrow-dot" /> Private, local-first analysis</span>
+          <h1 id="home-title">Check before you click.</h1>
+          <p>Paste a message, link, or screenshot. See the evidence and decide what to do next.</p>
         </div>
-        <div className="hero-orbit" aria-hidden="true">
-          <div className="orbit-ring orbit-ring-one" />
-          <div className="orbit-ring orbit-ring-two" />
-          <div className="orbit-ring orbit-ring-three" />
-          <div className="orbit-core"><span><Icon name="shield-check" size={38} strokeWidth={1.7} /></span><small>clear</small></div>
-          <span className="orbit-spark spark-one"><Icon name="sparkle" size={18} /></span><span className="orbit-spark spark-two"><Icon name="sparkle" size={14} /></span><span className="orbit-spark spark-three"><Icon name="check" size={14} /></span>
+        <div className="home-product-note">
+          <Icon name="lock" size={16} />
+          <span><strong>Nothing leaves this browser.</strong><small>No account, history, or external AI service.</small></span>
         </div>
       </section>
 
@@ -25,16 +21,18 @@ export default function HomePage() {
         <Checker />
       </section>
 
-      <section className="three-pillars shell" aria-label="How ClearCheck works">
-        <div className="pillar"><span className="pillar-number">01</span><h2><Icon name="search" size={17} /> Investigate</h2><p>Paste a message, email, or URL without opening the destination.</p></div>
-        <div className="pillar"><span className="pillar-number">02</span><h2><Icon name="eye" size={17} /> Understand</h2><p>See the exact words and URL features behind every warning.</p></div>
-        <div className="pillar"><span className="pillar-number">03</span><h2><Icon name="shield-check" size={17} /> Protect</h2><p>Get practical next steps that never rely on the suspicious link.</p></div>
-      </section>
-
-      <section className="home-bottom shell">
-        <div><span className="eyebrow">A clearer way to be cautious</span><h2>Absence of a warning is not a guarantee.</h2></div>
-        <p>ClearCheck is an education and assessment tool. It shows what local rules can observe, what remains unknown, and when to independently verify.</p>
-        <Link className="text-link" href="/about">Read about the approach <span>→</span></Link>
+      <section className="home-support shell" aria-labelledby="home-support-title">
+        <div className="home-support-intro">
+          <span className="eyebrow">A calmer way to be cautious</span>
+          <h2 id="home-support-title">Evidence first. Next steps second.</h2>
+          <p>ClearCheck shows what local rules can observe, what remains unknown, and how to verify through a trusted channel.</p>
+        </div>
+        <div className="home-support-list">
+          <div><span>01</span><strong>Investigate locally</strong><p>Paste a message or link without opening the destination.</p></div>
+          <div><span>02</span><strong>Read the signals</strong><p>See the exact words and URL features behind each finding.</p></div>
+          <div><span>03</span><strong>Choose your next step</strong><p>Use practical guidance without unsupported safety claims.</p></div>
+        </div>
+        <div className="home-support-links"><Link className="text-link" href="/privacy">Read the privacy approach <span>→</span></Link><Link className="text-link" href="/about">See limitations <span>→</span></Link></div>
       </section>
     </main>
   );

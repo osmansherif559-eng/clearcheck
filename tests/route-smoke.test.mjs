@@ -8,7 +8,7 @@ import { fileURLToPath } from "node:url";
 const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const nextBin = path.join(projectRoot, "node_modules", "next", "dist", "bin", "next");
 const routes = [
-  ["/", "Know the warning signs"],
+  ["/", "Check before you click."],
   ["/check", "What are you unsure about?"],
   ["/recover", "Something happened."],
   ["/learn", "Small details are worth a pause."],

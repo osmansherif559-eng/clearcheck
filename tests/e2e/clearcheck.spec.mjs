@@ -9,7 +9,7 @@ test.describe("ClearCheck browser workflow", () => {
     page.on("pageerror", (error) => pageErrors.push(error.message));
     await page.goto("/");
     await expect(page).toHaveTitle(/ClearCheck/);
-    await expect(page.locator("h1")).toContainText("Know the warning signs");
+    await expect(page.locator("h1")).toContainText("Check before you click.");
     const bodyFont = await page.locator("body").evaluate((element) => getComputedStyle(element).fontFamily);
     expect(bodyFont).toContain("Inter");
     const initialTheme = await page.locator("html").getAttribute("data-theme");
@@ -118,6 +118,6 @@ test("production shell can reload offline after service worker preparation", asy
   await page.waitForFunction(() => Boolean(navigator.serviceWorker.controller));
   await context.setOffline(true);
   await page.reload();
-  await expect(page.locator("h1")).toContainText("Know the warning signs");
+  await expect(page.locator("h1")).toContainText("Check before you click.");
   await context.setOffline(false);
 });

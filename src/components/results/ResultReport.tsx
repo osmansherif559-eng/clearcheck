@@ -12,7 +12,7 @@ function severityLabel(finding: Finding): string {
   return finding.severity === "high" ? "High signal" : finding.severity === "medium" ? "Meaningful signal" : "Low signal";
 }
 
-export default function ResultReport({ result, originalInput, onCopy, copied, onPrint, onReset, onRecovery }: { result: AnalysisResult; originalInput: string; onCopy: (includeInput: boolean) => void; copied: boolean; onPrint: () => void; onReset: () => void; onRecovery: () => void }) {
+export default function ResultReport({ result, originalInput, onCopy, copied, onPrint, onReset, onEdit, onRecovery }: { result: AnalysisResult; originalInput: string; onCopy: (includeInput: boolean) => void; copied: boolean; onPrint: () => void; onReset: () => void; onEdit: () => void; onRecovery: () => void }) {
   const assessment = assessmentCopy[result.assessment];
   const [includeInput, setIncludeInput] = useState(false);
   return (
@@ -20,6 +20,7 @@ export default function ResultReport({ result, originalInput, onCopy, copied, on
       <div className={`assessment-banner ${result.assessment}`}>
         <div className="assessment-icon" aria-hidden="true"><Icon name={assessment.icon} size={22} /></div>
         <div><span className="section-kicker">Assessment · {result.mode} analysis</span><h2 id="report-title">{assessment.label}</h2><p>{assessment.eyebrow}. {result.summary}</p></div>
+        <button className="report-edit-button" type="button" onClick={onEdit}><Icon name="edit" size={14} /> Edit input</button>
         <span className="ruleset-chip">Ruleset {result.rulesetVersion}</span>
       </div>
 
