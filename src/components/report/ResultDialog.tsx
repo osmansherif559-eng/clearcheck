@@ -10,7 +10,7 @@ import Icon, { type IconName } from "@/components/ui/Icon";
 const assessmentCopy: Record<Assessment, { label: string; eyebrow: string; icon: IconName }> = {
   high_concern: { label: "High concern", eyebrow: "Several strong signals need your attention", icon: "alert" },
   needs_caution: { label: "Needs caution", eyebrow: "Pause and verify before you act", icon: "eye" },
-  no_major_indicators: { label: "No major warning signs found", eyebrow: "The configured rules found no significant warning signs", icon: "shield-check" },
+  no_major_indicators: { label: "No major warning signs found", eyebrow: "Review the context before you decide", icon: "shield-check" },
 };
 
 function severityWeight(finding: Finding) {
@@ -87,8 +87,8 @@ export default function ResultDialog({ result, open, onClose, onEdit, onReset }:
         </section>
 
         <section className="dialog-section" aria-labelledby="dialog-evidence-title">
-          <div className="dialog-section-heading"><div><span className="section-kicker">Most important evidence</span><h3 id="dialog-evidence-title">What ClearCheck noticed</h3></div><span className="dialog-count">{findings.length} of {result.findings.length}</span></div>
-          {findings.length === 0 ? <p className="dialog-empty">No major rule matched this input. That is not proof of safety.</p> : <div className="dialog-findings">{findings.map((finding, index) => <article className={`dialog-finding severity-${finding.severity}`} key={`${finding.id}-${index}`}><h4>{finding.title}</h4><div className="dialog-evidence"><span>Evidence from your input</span><blockquote>“{finding.evidence}”</blockquote></div><p><strong>Why it matters:</strong> {finding.explanation}</p><p><strong>Safest next action:</strong> {finding.action}</p></article>)}</div>}
+          <div className="dialog-section-heading"><div><span className="section-kicker">Most important evidence</span><h3 id="dialog-evidence-title">What ClearCheck noticed</h3></div>{findings.length > 0 && <span className="dialog-count">{findings.length} of {result.findings.length}</span>}</div>
+          {findings.length === 0 ? <p className="dialog-empty">No additional evidence was matched. Verify the sender and destination independently before sharing information.</p> : <div className="dialog-findings">{findings.map((finding, index) => <article className={`dialog-finding severity-${finding.severity}`} key={`${finding.id}-${index}`}><h4>{finding.title}</h4><div className="dialog-evidence"><span>Evidence from your input</span><blockquote>“{finding.evidence}”</blockquote></div><p><strong>Why it matters:</strong> {finding.explanation}</p><p><strong>Safest next action:</strong> {finding.action}</p></article>)}</div>}
         </section>
 
         <section className="dialog-section dialog-questions" aria-labelledby="dialog-questions-title">

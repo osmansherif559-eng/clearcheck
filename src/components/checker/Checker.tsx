@@ -48,6 +48,7 @@ const samples: Sample[] = [
 
 export default function Checker({ showSamples = true, showRecovery = true }: { showSamples?: boolean; showRecovery?: boolean }) {
   const [inputMethod, setInputMethod] = useState<"text" | "image">("text");
+  const [openFileRequest, setOpenFileRequest] = useState(0);
   const { report: existingReport, setReport, clearReport } = useReportSession();
   const [input, setInput] = useState(existingReport?.originalInput ?? "");
   const [mode, setMode] = useState<AnalysisMode>("auto");
@@ -57,9 +58,9 @@ export default function Checker({ showSamples = true, showRecovery = true }: { s
   const [dialogOpen, setDialogOpen] = useState(false);
 
   const inputHint = useMemo(() => {
-    if (mode === "url") return "https://example.com/account/verify…";
-    if (mode === "message") return "“Your account will be locked today. Send the code…”";
-    return "“Your account will be locked today…” or https://example.com/verify…";
+    if (mode === "url") return "Paste a link here...";
+    if (mode === "message") return "Paste the message, email, or link here...";
+    return "Paste the message, email, or link here...";
   }, [mode]);
 
   function completeAnalysis(nextResult: AnalysisResult, sourceInput: string) {
@@ -120,23 +121,26 @@ export default function Checker({ showSamples = true, showRecovery = true }: { s
         <section className="checker-input-panel" aria-labelledby="checker-title">
           <div className="checker-card-top">
             <div><span className="section-kicker">Start with what you received</span><h2 id="checker-title">Paste or upload</h2><p className="checker-panel-intro">ClearCheck looks for observable signals without opening links or sending your content anywhere.</p></div>
-            <span className="local-badge"><Icon name="lock" size={13} /> Local analysis</span>
           </div>
           <div className="checker-methods" role="group" aria-label="Choose what to check">
             <button aria-pressed={inputMethod === "text" && mode !== "url"} className={inputMethod === "text" && mode !== "url" ? "checker-method active" : "checker-method"} type="button" onClick={() => { setInputMethod("text"); setMode("auto"); }}><Icon name="message" size={16} /> Message</button>
             <button aria-pressed={inputMethod === "text" && mode === "url"} className={inputMethod === "text" && mode === "url" ? "checker-method active" : "checker-method"} type="button" onClick={() => { setInputMethod("text"); setMode("url"); }}><Icon name="link" size={16} /> Link</button>
             <button aria-pressed={inputMethod === "image"} className={inputMethod === "image" ? "checker-method active" : "checker-method"} type="button" onClick={() => setInputMethod("image")}><Icon name="eye" size={16} /> Screenshot or QR</button>
+            <button className="checker-method" type="button" onClick={() => { setInputMethod("image"); setOpenFileRequest((current) => current + 1); }} aria-label="Upload a file"><Icon name="paperclip" size={16} /> Upload file</button>
+            <span className="local-badge"><Icon name="lock" size={13} /> Local analysis</span>
           </div>
           {inputMethod === "text" ? <div className="checker-card">
             <form onSubmit={submit}>
               <label className="input-label" htmlFor="check-input">Paste the content to check</label>
-              <textarea id="check-input" aria-label="Suspicious message or URL" value={input} onChange={(event) => setInput(event.target.value)} placeholder={inputHint} maxLength={12000} spellCheck="false" aria-describedby="input-privacy" />
-              <div className="input-meta"><span>Remove passwords, codes, and financial details first.</span><span>{input.length.toLocaleString()} / 12,000</span></div>
+              <div className="textarea-shell">
+                <textarea id="check-input" aria-label="Suspicious message or URL" value={input} onChange={(event) => setInput(event.target.value)} placeholder={inputHint} maxLength={12000} spellCheck="false" aria-describedby="input-privacy" />
+                <div className="input-meta"><span className="input-safety"><Icon name="shield" size={14} /> <span>Remove passwords, codes and financial details first.</span></span><span>{input.length.toLocaleString()} / 12,000</span></div>
+              </div>
               {error && <div className="form-error" role="alert"><span>!</span>{error}</div>}
-              <div className="checker-actions"><button className="primary-button" type="submit">{mode === "url" ? "Inspect URL" : "Analyze safely"}<Icon name="arrow-up-right" size={17} /></button><button className="quiet-button" type="button" onClick={reset} disabled={!input && !result}><Icon name="refresh" size={15} /> Clear</button></div>
+              <div className="checker-actions"><button className="primary-button" type="submit"><Icon name="shield-check" size={19} /> <span>{showSamples ? (mode === "url" ? "Inspect URL" : "Analyze safely") : "Analyze"}</span> <Icon name="arrow-right" size={17} /></button><button className="quiet-button" type="button" onClick={reset} disabled={!input && !result}><Icon name="refresh" size={15} /> Clear</button></div>
             </form>
             <p className="privacy-note" id="input-privacy"><Icon name="lock" size={13} /> Your input stays in this browser. Nothing is saved or sent to an external AI service.</p>
-          </div> : <ImageInspector onAnalyze={(nextInput, nextMode) => { setInput(nextInput); setMode(nextMode); setInputMethod("text"); completeAnalysis(analyze(nextInput, nextMode), nextInput); }} />}
+           </div> : <ImageInspector openFileRequest={openFileRequest} onAnalyze={(nextInput, nextMode) => { setInput(nextInput); setMode(nextMode); setInputMethod("text"); completeAnalysis(analyze(nextInput, nextMode), nextInput); }} />}
         </section>
       </div>
 

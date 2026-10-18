@@ -18,7 +18,7 @@ describe("versioned ClearCheck corpus", () => {
       "job-recruitment-fee", "invoice-refund-payment-demand", "investment-and-cryptocurrency-fraud", "romance-and-relationship-manipulation",
       "family-emergency-impersonation", "government-tax-law-enforcement-impersonation", "tech-support-remote-access", "shopping-giveaway-prize",
       "subscription-renewal-payment-failure", "qr-code-phishing", "deceptive-url-patterns", "malicious-download-and-attachment-lure",
-      "social-media-recovery-and-copyright-phishing", "marketplace-buyer-seller-payment-scam", "private-channel-change-request", "legitimate-benign-counterexample",
+      "social-media-recovery-and-copyright-phishing", "marketplace-buyer-seller-payment-scam", "private-channel-change-request", "recruitment-sensitive-information-request", "legitimate-benign-counterexample",
     ];
     expect(new Set(corpus.cases.map((entry) => entry.category))).toEqual(new Set(required));
     expect(corpus.provenance.sources.length).toBeGreaterThanOrEqual(4);

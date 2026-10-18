@@ -7,6 +7,7 @@ export type ContextQuestionId =
   | "expectedness"
   | "account-alert-expectedness"
   | "job-application"
+  | "request-route"
   | "delivery-expectedness"
   | "sender-recognition"
   | "request-type"
@@ -56,11 +57,22 @@ const accountAlertExpectedness: ContextQuestion = {
 
 const jobApplication: ContextQuestion = {
   id: "job-application",
-  prompt: "Did you apply for this position?",
+  prompt: "Did you apply for this job or have an interview?",
   options: [
     { value: "yes", label: "Yes, I applied." },
     { value: "no", label: "No, I did not." },
     { value: "unsure", label: "I’m not sure." },
+  ],
+};
+
+const requestRoute: ContextQuestion = {
+  id: "request-route",
+  prompt: "How are they asking you to provide your details?",
+  options: [
+    { value: "direct_reply", label: "By replying directly to the message" },
+    { value: "verified_portal", label: "Through a portal I independently verified" },
+    { value: "unfamiliar_link", label: "Through an unfamiliar link" },
+    { value: "unsure", label: "Not sure" },
   ],
 };
 
@@ -131,7 +143,7 @@ export function getContextQuestions(result: AnalysisResult): ContextQuestion[] {
   const text = textFor(result);
   const ids = new Set(result.findings.map((finding) => finding.id));
 
-  if (/(?:job|position|employment|recruit|onboarding)/u.test(text)) return [jobApplication, interactionStatus];
+  if (/(?:job|position|employment|recruit|onboarding|data[-\s]?entry)/u.test(text)) return [jobApplication, requestRoute];
   if (/(?:delivery|package|parcel|courier|shipment|tracking)/u.test(text)) return [deliveryExpectedness, interactionStatus];
   if (ids.has("message.credential-request") || /(?:password|verification code|otp|mfa|login)/u.test(text)) return [accountAlertExpectedness, interactionStatus];
   if (ids.has("message.payment-pressure") || /(?:payment|fee|invoice|refund|transfer|gift card|crypto)/u.test(text)) return [senderRecognition, interactionStatus];
@@ -160,6 +172,9 @@ function recoveryFor(status: string | undefined): RecoveryScenario | undefined {
 function contextActions(answers: ContextAnswers) {
   const actions: string[] = [];
   if (answers["job-application"] === "no") actions.push("Do not respond to or pay this unsolicited offer; verify openings through the employer’s official careers site.");
+  if (answers["request-route"] === "direct_reply") actions.push("Do not send SSN, bank, tax, or account details in a reply; verify the employer through its official careers site first.");
+  if (answers["request-route"] === "unfamiliar_link") actions.push("Do not enter sensitive details into the unfamiliar link; navigate to the employer’s official site yourself.");
+  if (answers["request-route"] === "verified_portal") actions.push("A portal you independently verified is safer than replying, but still confirm the employer and address before entering sensitive details.");
   if (answers["sender-recognition"] === "unrecognized") actions.push("Because you do not recognize the sender, verify the organization through a website or phone number you find yourself.");
   if (answers["request-type"] === "sign_in") actions.push("If you need to sign in, open the service through a bookmark or manually typed address instead of this message.");
   if (answers["request-type"] === "share_code") actions.push("Never share a one-time or recovery code with someone who contacted you unexpectedly.");
@@ -175,6 +190,7 @@ export function contextualAdvice(result: AnalysisResult, answers: ContextAnswers
   const status = answers["interaction-status"];
   const recoveryScenario = recoveryFor(status);
   const tailoredActions = contextActions(answers);
+  const hasContextAnswer = Boolean(answers["job-application"] || answers["request-route"] || answers["sender-recognition"] || answers["request-type"]);
   const subject = result.mode === "url" ? "This link" : "This message";
 
   if (!important) {
@@ -182,7 +198,7 @@ export function contextualAdvice(result: AnalysisResult, answers: ContextAnswers
       explanation: `${subject} did not match a major warning rule. That is not proof that it is safe; the sender, context, and destination still need independent checking.`,
       primaryAction: "Verify the sender through a trusted channel you find yourself.",
       additionalActions: Array.from(new Set(["Do not share sensitive information until you are confident who contacted you.", ...tailoredActions])),
-      contextNote: unexpected || tailoredActions.length > 0 ? "Your answers add context, but they do not prove the message is genuine or fraudulent." : undefined,
+      contextNote: unexpected || tailoredActions.length > 0 || hasContextAnswer ? "Your answers add context, but they do not prove the message is genuine or fraudulent." : undefined,
     };
   }
 
@@ -199,7 +215,7 @@ export function contextualAdvice(result: AnalysisResult, answers: ContextAnswers
     recoveryScenario,
     contextNote: recoveryScenario
       ? "Your answer describes what happened after receiving the message. It does not change the observed evidence, but it changes which protective steps matter now."
-      : unexpected || cannotVerify
+      : unexpected || cannotVerify || hasContextAnswer
         ? "Your answer adds context, but it does not prove the message is genuine or fraudulent."
         : undefined,
   };

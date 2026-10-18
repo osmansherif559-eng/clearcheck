@@ -23,10 +23,12 @@ function assessmentFor(findings: Finding[]): AnalysisResult["assessment"] {
   return "no_major_indicators";
 }
 
-function summaryFor(assessment: AnalysisResult["assessment"], findingCount: number): string {
+function summaryFor(assessment: AnalysisResult["assessment"], findingCount: number, mode: ResolvedMode): string {
   if (assessment === "high_concern") return `${findingCount} evidence-linked warning${findingCount === 1 ? "" : "s"} deserve immediate caution.`;
   if (assessment === "needs_caution") return `${findingCount} meaningful signal${findingCount === 1 ? "" : "s"} should be independently checked before you act.`;
-  return "The configured rules found no major warning signs. That does not prove the message or link is safe.";
+  return mode === "url"
+    ? "No major warning signs were found by the current checks. This does not prove the link is safe."
+    : "No major warning signs were found by the current checks. This does not prove the message is safe.";
 }
 
 export function analyze(input: string, mode: AnalysisMode = "auto"): AnalysisResult {
@@ -71,7 +73,7 @@ export function analyze(input: string, mode: AnalysisMode = "auto"): AnalysisRes
 
   return {
     assessment,
-    summary: summaryFor(assessment, findings.length),
+    summary: summaryFor(assessment, findings.length, resolvedMode),
     mode: resolvedMode,
     findings,
     observations,

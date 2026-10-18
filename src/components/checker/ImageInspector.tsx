@@ -9,7 +9,7 @@ import { clampImageDimensions, classifyQrPayload, imageFileLabel, validateImageF
 
 type InspectorStatus = "idle" | "reading" | "decoding" | "ready" | "error";
 
-export default function ImageInspector({ onAnalyze }: { onAnalyze: (input: string, mode: AnalysisMode) => void }) {
+export default function ImageInspector({ onAnalyze, openFileRequest = 0 }: { onAnalyze: (input: string, mode: AnalysisMode) => void; openFileRequest?: number }) {
   const [file, setFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState("");
   const [status, setStatus] = useState<InspectorStatus>("idle");
@@ -24,6 +24,10 @@ export default function ImageInspector({ onAnalyze }: { onAnalyze: (input: strin
   useEffect(() => () => {
     if (previewUrlRef.current) URL.revokeObjectURL(previewUrlRef.current);
   }, []);
+
+  useEffect(() => {
+    if (openFileRequest > 0) inputRef.current?.click();
+  }, [openFileRequest]);
 
   function chooseFile(nextFile: File | null) {
     const validationError = validateImageFile(nextFile);

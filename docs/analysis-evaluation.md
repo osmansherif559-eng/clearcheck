@@ -6,9 +6,9 @@ ClearCheck uses a small, versioned, offline regression corpus. It is **not** a c
 
 - Corpus file: `src/lib/analysis/corpus/v1.json`
 - Corpus version: `1.0.0`
-- Ruleset version evaluated by the corpus: `1.1.0`
+- Ruleset version evaluated by the corpus: `1.2.0`
 - Examples: 100% synthetic, redacted, non-functional fixtures. No user-submitted content, credentials, active malware, live QR payloads, or functional destinations are included.
-- Categories: 20, including account takeover, OTP theft, bank/payment impersonation, delivery fees, recruitment fees, invoice/refund demands, investment/crypto, romance, family emergency, government/tax, tech support, prizes, subscription phishing, QR phishing, URL patterns, downloads, social-account alerts, marketplace payment scams, private-channel changes, and benign counterexamples.
+- Categories: 21, including account takeover, OTP theft, bank/payment impersonation, delivery fees, recruitment fees, recruitment-sensitive-information requests, invoice/refund demands, investment/crypto, romance, family emergency, government/tax, tech support, prizes, subscription phishing, QR phishing, URL patterns, downloads, social-account alerts, marketplace payment scams, private-channel changes, and benign counterexamples.
 
 The corpus includes provenance for the public guidance used to shape the categories. Sources include CISA phishing guidance, the UCI SMS Spam Collection (CC BY 4.0, evaluated as a possible benchmark but not redistributed here), UK NCSC QR guidance (OGL v3), and Investor.gov fraud education. Source text and media are not copied into the application. The complete source metadata, access dates, licenses, and transformation policy are in the corpus file.
 

@@ -22,11 +22,55 @@ describe("ClearCheck analysis", () => {
     expect(result.findings.some((finding) => finding.title.includes("Upfront payment"))).toBe(true);
   });
 
+  it("flags the exact sensitive-information recruitment message", () => {
+    const input = "You have been selected for a remote data entry position paying $35/hr. Reply to start your training and provide your SSN/bank details.";
+    const result = analyze(input, "message");
+
+    expect(result.assessment).toBe("high_concern");
+    expect(result.findings.map((finding) => finding.id)).toEqual(expect.arrayContaining([
+      "message.sensitive-information-request",
+      "message.recruitment-context",
+    ]));
+    expect(result.findings.every((finding) => input.includes(finding.evidence))).toBe(true);
+    expect(result.findings.find((finding) => finding.id === "message.sensitive-information-request")?.evidence).toContain("SSN/bank details");
+  });
+
+  it("handles capitalization, punctuation, and expanded sensitive-information wording", () => {
+    const input = "CONGRATULATIONS! A REMOTE DATA-ENTRY POSITION is ready. Reply with your Social Security Number and bank account/routing details to begin training.";
+    const result = analyze(input, "message");
+
+    expect(result.assessment).toBe("high_concern");
+    expect(result.findings.map((finding) => finding.id)).toEqual(expect.arrayContaining([
+      "message.sensitive-information-request",
+      "message.recruitment-context",
+    ]));
+    expect(result.findings.every((finding) => input.includes(finding.evidence))).toBe(true);
+  });
+
+  it("does not turn protective or informational references into a sensitive request", () => {
+    const article = analyze("Job applicants should protect their SSNs; never send a Social Security number in reply to an unsolicited offer.");
+    const bankingMention = analyze("The bank published an article explaining how routing numbers work. Contact your bank if you have questions.");
+
+    expect(article.assessment).toBe("no_major_indicators");
+    expect(article.findings).toHaveLength(0);
+    expect(bankingMention.assessment).toBe("no_major_indicators");
+    expect(bankingMention.findings).toHaveLength(0);
+  });
+
+  it("keeps a verified payroll portal from becoming high concern solely because it requests onboarding details", () => {
+    const result = analyze("I am already hired. Complete payroll onboarding by entering your SSN and bank account details in the official employer portal you independently verified.");
+
+    expect(result.assessment).not.toBe("high_concern");
+    expect(result.findings.some((finding) => finding.id === "message.sensitive-information-request")).toBe(true);
+    expect(result.findings.every((finding) => inputHasEvidence("I am already hired. Complete payroll onboarding by entering your SSN and bank account details in the official employer portal you independently verified.", finding.evidence))).toBe(true);
+  });
+
   it("does not overreact to a routine appointment reminder", () => {
     const result = analyze("Reminder: your dental appointment is tomorrow at 10:00 AM. Reply YES to confirm.");
 
     expect(result.assessment).toBe("no_major_indicators");
     expect(result.findings).toHaveLength(0);
+    expect(result.summary).toBe("No major warning signs were found by the current checks. This does not prove the message is safe.");
   });
 
   it("inspects a deceptive hostname without opening it", () => {
@@ -109,3 +153,7 @@ describe("ClearCheck analysis", () => {
     expect(result.analyzedLinks[1]?.findings[0]?.evidence).toBe(secondUrl);
   });
 });
+
+function inputHasEvidence(input: string, evidence: string) {
+  return input.includes(evidence);
+}

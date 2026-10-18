@@ -32,6 +32,23 @@ describe("contextual education", () => {
     expect(advice.additionalActions.join(" ")).toMatch(/unsolicited offer|pay a fee/i);
   });
 
+  it("asks recruitment-specific route questions without asking for sensitive values", () => {
+    const result = analyze("You have been selected for a remote data entry position. Reply to start training and provide your SSN and bank details.");
+    const questions = getContextQuestions(result);
+
+    expect(questions.map((question) => question.id)).toEqual(["job-application", "request-route"]);
+    expect(questions.flatMap((question) => question.options.map((option) => option.label)).join(" ")).not.toMatch(/SSN|account number|password|code you received/i);
+  });
+
+  it("uses recruitment route answers without erasing direct evidence", () => {
+    const result = analyze("You have been selected for a remote data entry position. Reply to start training and provide your SSN and bank details.");
+    const advice = contextualAdvice(result, { "job-application": "yes", "request-route": "direct_reply" });
+
+    expect(result.assessment).toBe("high_concern");
+    expect(advice.additionalActions.join(" ")).toMatch(/do not send SSN|sensitive details in a reply/i);
+    expect(advice.contextNote).toMatch(/does not prove/i);
+  });
+
   it("uses sender recognition to strengthen independent verification advice", () => {
     const result = analyze("Your invoice is overdue. Pay the balance immediately using this link.");
     const advice = contextualAdvice(result, { "sender-recognition": "unrecognized" });

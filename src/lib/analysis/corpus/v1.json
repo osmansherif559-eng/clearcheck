@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0.0",
   "corpusVersion": "1.0.0",
-  "rulesetVersion": "1.1.0",
+  "rulesetVersion": "1.2.0",
   "provenance": {
     "policy": "Synthetic, redacted, non-functional examples written for offline regression coverage. No user messages, live payloads, credentials, or active destinations are included.",
     "sources": [
@@ -206,6 +206,51 @@
       "mode": "message",
       "input": "I have a new payment account. Keep this private and contact me on WhatsApp to complete the transfer.",
       "expect": { "assessment": "needs_caution", "includeFindingIds": ["message.channel-change"] }
+    },
+    {
+      "id": "job-sensitive-details-01",
+      "category": "recruitment-sensitive-information-request",
+      "label": "synthetic-suspicious",
+      "provenance": "Synthetic regression for an unsolicited remote data-entry offer requesting identity and banking details.",
+      "mode": "message",
+      "input": "You have been selected for a remote data entry position paying $35/hr. Reply to start your training and provide your SSN/bank details.",
+      "expect": { "assessment": "high_concern", "includeFindingIds": ["message.sensitive-information-request", "message.recruitment-context"] }
+    },
+    {
+      "id": "job-sensitive-details-variant-01",
+      "category": "recruitment-sensitive-information-request",
+      "label": "synthetic-suspicious",
+      "provenance": "Synthetic capitalization and phrasing variant for sensitive-information recruitment detection.",
+      "mode": "message",
+      "input": "CONGRATULATIONS! A REMOTE DATA-ENTRY POSITION is ready. Reply with your Social Security Number and bank account/routing details to begin training.",
+      "expect": { "assessment": "high_concern", "includeFindingIds": ["message.sensitive-information-request", "message.recruitment-context"] }
+    },
+    {
+      "id": "benign-ssn-protection-article-01",
+      "category": "legitimate-benign-counterexample",
+      "label": "synthetic-benign",
+      "provenance": "Synthetic informational article reference that warns applicants to protect sensitive details.",
+      "mode": "message",
+      "input": "Job applicants should protect their SSNs; never send a Social Security number in reply to an unsolicited offer.",
+      "expect": { "assessment": "no_major_indicators", "includeFindingIds": [], "excludeFindingIds": ["message.sensitive-information-request", "message.recruitment-context"] }
+    },
+    {
+      "id": "benign-banking-reference-01",
+      "category": "legitimate-benign-counterexample",
+      "label": "synthetic-benign",
+      "provenance": "Synthetic educational banking reference without a request for financial details.",
+      "mode": "message",
+      "input": "The bank published an article explaining how routing numbers work. Contact your bank if you have questions.",
+      "expect": { "assessment": "no_major_indicators", "includeFindingIds": [], "excludeFindingIds": ["message.sensitive-information-request"] }
+    },
+    {
+      "id": "benign-verified-payroll-portal-01",
+      "category": "legitimate-benign-counterexample",
+      "label": "synthetic-benign",
+      "provenance": "Synthetic already-hired payroll onboarding reference through an independently verified official portal.",
+      "mode": "message",
+      "input": "I am already hired. Complete payroll onboarding in the official employer portal you independently verified; the portal will collect your SSN and bank account details.",
+      "expect": { "assessment": "no_major_indicators", "includeFindingIds": [], "excludeFindingIds": ["message.sensitive-information-request", "message.recruitment-context"] }
     },
     {
       "id": "url-ip-01",

@@ -3,6 +3,7 @@ import type { SVGProps } from "react";
 export type IconName =
   | "alert"
   | "arrow-up-right"
+  | "arrow-right"
   | "book"
   | "briefcase"
   | "check"
@@ -21,6 +22,7 @@ export type IconName =
   | "message"
   | "moon"
   | "printer"
+  | "paperclip"
   | "refresh"
   | "search"
   | "shield-check"
@@ -34,6 +36,7 @@ export type IconName =
 const paths: Record<IconName, React.ReactNode> = {
   alert: <><path d="m12 3 9 17H3L12 3Z" /><path d="M12 9v4M12 17h.01" /></>,
   "arrow-up-right": <><path d="M7 17 17 7M8 7h9v9" /></>,
+  "arrow-right": <><path d="M5 12h14M13 6l6 6-6 6" /></>,
   book: <><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v16H6.5A2.5 2.5 0 0 0 4 21.5v-16Z" /><path d="M4 5.5v16M8 7h8M8 11h8" /></>,
   briefcase: <><rect x="3" y="7" width="18" height="13" rx="2" /><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M3 12h18M10 12v2h4v-2" /></>,
   check: <path d="m5 12 4 4L19 6" />,
@@ -52,6 +55,7 @@ const paths: Record<IconName, React.ReactNode> = {
   message: <><path d="M20 11.5a7.5 7.5 0 0 1-8 7.5 8.6 8.6 0 0 1-3-.5L4 20l1.5-4A7.2 7.2 0 0 1 4.5 12 7.5 7.5 0 0 1 12 4.5c4.2 0 8 2.8 8 7Z" /><path d="M8 12h.01M12 12h.01M16 12h.01" /></>,
   moon: <path d="M20.5 15.5A8.5 8.5 0 0 1 8.5 3.5 8.5 8.5 0 1 0 20.5 15.5Z" />,
   printer: <><path d="M6 9V3h12v6M6 17H4a2 2 0 0 1-2-2v-4a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2h-2" /><path d="M6 14h12v7H6zM18 12h.01" /></>,
+  paperclip: <path d="m20.5 11.5-8.7 8.7a5 5 0 0 1-7.1-7.1l9.2-9.2a3.5 3.5 0 0 1 5 5l-9.2 9.2a2 2 0 0 1-2.8-2.8l8.5-8.5" />,
   refresh: <><path d="M20 11a8 8 0 0 0-14.7-3L3 11" /><path d="M3 5v6h6M4 13a8 8 0 0 0 14.7 3L21 13" /><path d="M21 19v-6h-6" /></>,
   search: <><circle cx="10.8" cy="10.8" r="6.8" /><path d="m16 16 5 5" /></>,
   "shield-check": <><path d="M12 3 20 6v5c0 5-3.2 8.5-8 10-4.8-1.5-8-5-8-10V6l8-3Z" /><path d="m8.5 12 2.2 2.2 4.8-5" /></>,

@@ -3,8 +3,17 @@ import { evidenceAround, firstMatch, hasAny, normalizeForMatching } from "./help
 
 const urgency = [/\burgent(?:ly)?\b/iu, /\bimmediately\b/iu, /\bwithin\s+\d+\s*(?:minutes?|hours?|days?)\b/iu, /\blast\s+warning\b/iu, /\bfinal\s+notice\b/iu];
 const threats = [/account\s+(?:will be|has been)\s+(?:closed|suspended|locked)/iu, /\b(?:lose|forfeit)\s+(?:access|your account|the offer)\b/iu, /\baction\s+is\s+required\b/iu];
-const requestLanguage = [/\bsend\b/iu, /\bshare\b/iu, /\bprovide\b/iu, /\bconfirm\b/iu, /\bclick\b/iu, /\bpay\b/iu, /\bverify\b/iu, /\buse\b/iu];
-const credentialTerms = [/password/iu, /one[-\s]?time\s+(?:pass)?code/iu, /\b(?:otp|2fa|mfa)\s+code\b/iu, /verification\s+code/iu, /recovery\s+code/iu, /security\s+code/iu, /login\s+details/iu];
+const requestLanguage = [/\bsend\b/iu, /\bshare\b/iu, /\bprovide\b/iu, /\bconfirm\b/iu, /\bclick\b/iu, /\bpay\b/iu, /\bverify\b/iu, /\buse\b/iu, /\bsubmit\b/iu, /\benter\b/iu, /\btype\b/iu, /\breply\b/iu, /\bgive\b/iu, /\bupload\b/iu, /\bdisclose\b/iu, /\bsupply\b/iu, /\bfill\s+out\b/iu];
+const directSensitiveRequestLanguage = [/\bsend(?:s|ing|ed)?\b/iu, /\bshare(?:s|d|ing)?\b/iu, /\bprovide(?:s|d|ing)?\b/iu, /\bsubmit(?:s|ted|ting)?\b/iu, /\benter(?:s|ed|ing)?\b/iu, /\btype(?:s|d|ing)?\b/iu, /\breply(?:ing|ies|ied)?\b/iu, /\bgive(?:s|n|ing)?\b/iu, /\bupload(?:s|ed|ing)?\b/iu, /\bdisclose(?:s|d|ing)?\b/iu, /\bsupply(?:s|plied|ing)?\b/iu, /\bfill\s+out\b/iu, /\bverify(?:s|ied|ing)?\b/iu];
+const protectiveLanguage = [/\bnever\b/iu, /\bdo\s+not\b/iu, /\bdon['’]?t\b/iu, /\bshould\s+not\b/iu, /\bavoid\b/iu, /\bprotect\b/iu, /\bwarning\b/iu, /\bwarn(?:s|ed|ing)?\b/iu];
+const credentialTerms = [/password/iu, /one[-\s]?time\s+(?:pass)?code/iu, /\b(?:otp|2fa|mfa)\s+code\b/iu, /verification\s+code/iu, /recovery\s+code/iu, /security\s+code/iu, /login\s+details/iu, /\b(?:login|account)\s+credentials?\b/iu, /\busername\s+and\s+password\b/iu];
+const identityTerms = [/\b(?:ssn|s\.s\.n\.|social security(?: number| no\.?| #)?)\b/iu, /\b(?:tax(?:payer)?\s*(?:id|number)|tin|ein|passport|driver['’]?s license|identity (?:document|details|information)|date of birth|dob)\b/iu];
+const financialDetailsTerms = [/\b(?:bank(?:ing)?\s+(?:account|details?|information)|bank\s+account(?:\s+(?:number|details?))?|account\s+and\s+routing(?:\s+number)?|routing\s+(?:number|details?))\b/iu, /\b(?:credit|debit)\s+card(?:\s+(?:number|details?|information))?\b/iu, /\b(?:card\s+(?:number|details?|information)|cvv|cvc|security code)\b/iu];
+const sensitiveInformationTerms = [...identityTerms, ...financialDetailsTerms, ...credentialTerms];
+const recruitmentTerms = [/\b(?:job|position|employment|recruit(?:er|ment)?|candidate|applicant|hiring|data[-\s]?entry|remote|work[-\s]?from[-\s]?home)\b/iu];
+const recruitmentOpportunityTerms = [/\b(?:selected|congratulations|offer|hired|training|onboarding|interview|hourly|per\s+hour|paying)\b/iu];
+const recruitmentReplyTerms = [/\breply\b/iu, /\brespond\b/iu, /\btext\b/iu, /\bmessage\b/iu, /\bemail\b/iu];
+const payrollVerificationTerms = [/\balready\s+hired\b/iu, /\bpayroll\b/iu, /\bindependently\s+verified\b/iu, /\bofficial\s+(?:employer|company)?\s*portal\b/iu];
 const paymentTerms = [/\b(?:pay|payment|fee|deposit|transfer|invoice|gift card|cryptocurrency|bitcoin|wire)\b/iu, /\baccount\s+details\b/iu];
 const riskyPaymentMethods = [/gift\s+cards?/iu, /cryptocurrency|bitcoin|usdt/iu, /wire\s+transfer/iu, /unusual\s+(?:payment|transfer)/iu];
 const impersonatedServices = [/\b(?:bank|credit union|government|tax office|delivery|courier|employer|recruiter|microsoft|amazon|paypal|netflix)\b/iu];
@@ -36,6 +45,23 @@ export interface MessageAnalysis {
   unknowns: string[];
 }
 
+function sensitiveRequestMatch(text: string): { evidence: string; term: RegExp } | undefined {
+  for (const term of sensitiveInformationTerms) {
+    const match = new RegExp(term.source, term.flags.includes("g") ? term.flags : `${term.flags}g`).exec(text);
+    if (!match || match.index === undefined) continue;
+    const windowStart = Math.max(0, match.index - 70);
+    const windowEnd = Math.min(text.length, match.index + match[0].length + 70);
+    const window = text.slice(windowStart, windowEnd);
+    if (!hasAny(window, directSensitiveRequestLanguage) || hasAny(window, protectiveLanguage)) continue;
+    return { evidence: evidenceAround(text, [term]) ?? match[0], term };
+  }
+  return undefined;
+}
+
+function hasRecruitmentContext(text: string) {
+  return hasAny(text, recruitmentTerms) && hasAny(text, recruitmentOpportunityTerms);
+}
+
 export function analyzeMessage(input: string): MessageAnalysis {
   const text = normalizeForMatching(input);
   const findings: Finding[] = [];
@@ -51,6 +77,11 @@ export function analyzeMessage(input: string): MessageAnalysis {
   const hasPayment = hasAny(text, paymentTerms);
   const hasRiskyPayment = hasAny(text, riskyPaymentMethods);
   const serviceMentioned = hasAny(text, impersonatedServices);
+  const sensitiveRequest = sensitiveRequestMatch(text);
+  const recruitmentContext = hasRecruitmentContext(text);
+  const verifiedPayroll = hasAny(text, payrollVerificationTerms) && /\b(?:portal|website|app)\b/iu.test(text);
+  const recruitmentPressure = hasAny(text, recruitmentReplyTerms) && (hasAny(text, [/\b(?:start|begin)\b/iu, /\btraining\b/iu, /\bonboarding\b/iu]) || Boolean(sensitiveRequest));
+  const suspiciousRecruitment = recruitmentContext && (Boolean(sensitiveRequest) || hasPayment || recruitmentPressure) && !verifiedPayroll;
 
   if (hasUrgency && (hasThreat || hasRequest)) {
     const evidence = evidenceAround(text, [...threats, ...urgency]) ?? firstMatch(text, urgency[0]) ?? "Urgent language";
@@ -81,6 +112,37 @@ export function analyzeMessage(input: string): MessageAnalysis {
     );
   }
 
+  if (sensitiveRequest && !hasCredential) {
+    const highConcern = suspiciousRecruitment || hasUrgency || hasThreat || hasRiskyPayment;
+    findings.push(
+      finding(
+        "message.sensitive-information-request",
+        "Request for sensitive personal or financial details",
+        highConcern ? "high" : "medium",
+        sensitiveRequest.evidence,
+        suspiciousRecruitment
+          ? "A request for SSN, bank, or identity details in an unverified recruitment conversation can expose you to identity theft or account fraud. Legitimate employers should direct you to a portal you verify independently, not ask for these details in a reply."
+          : "Sensitive information should only be entered through an official, independently verified process. A message is not proof that the requester is legitimate.",
+        "Do not reply with sensitive details. Independently verify the employer or organization and use an official portal you navigate to yourself.",
+        "ClearCheck cannot determine whether a legitimate organization is behind the request.",
+      ),
+    );
+  }
+
+  if (suspiciousRecruitment) {
+    findings.push(
+      finding(
+        "message.recruitment-context",
+        "Suspicious recruitment context",
+        sensitiveRequest || hasPayment ? "high" : "medium",
+        evidenceAround(text, [...recruitmentOpportunityTerms, ...recruitmentTerms, ...recruitmentReplyTerms]) ?? "A recruitment message paired with a sensitive request or pressure",
+        "A remote or data-entry opportunity that quickly asks you to reply, start training, pay, or provide sensitive details needs independent verification before you continue.",
+        "Find the employer's official careers site yourself, verify the role and contact, and do not send sensitive details in a reply or through an unverified link.",
+        "Remote work, data-entry language, and pay rates alone do not prove fraud; the concern comes from the combination of recruitment pressure and the request.",
+      ),
+    );
+  }
+
   if (hasPayment && (hasUrgency || hasThreat || hasRiskyPayment || /upfront|before\s+(?:starting|delivery|release)/iu.test(text) || (hasRequest && /(?:subscription|renewal|payment failed|refund|invoice|shipping|delivery)/iu.test(text)))) {
     const evidence = evidenceAround(text, [riskyPaymentMethods[0], riskyPaymentMethods[1], /upfront/iu, /payment/iu]) ?? "A payment request with pressure or unusual instructions";
     const jobFee = /job|position|employment|recruit/iu.test(text) && /fee|deposit|pay/iu.test(text);
@@ -98,7 +160,7 @@ export function analyzeMessage(input: string): MessageAnalysis {
     );
   }
 
-  if (serviceMentioned && (hasCredential || hasPayment || hasThreat)) {
+  if (serviceMentioned && (hasCredential || hasPayment || hasThreat) && !verifiedPayroll) {
     const evidence = evidenceAround(text, [...impersonatedServices, ...credentialTerms, ...paymentTerms, ...threats]) ?? "A service or organization name paired with a sensitive request";
     findings.push(
       finding(
@@ -222,6 +284,7 @@ export function analyzeMessage(input: string): MessageAnalysis {
   }
 
   if (hasCredential) observations.push({ id: "message.credential-term", label: "Authentication language", value: "The message mentions a password, code, or account credential." });
+  if (sensitiveRequest) observations.push({ id: "message.sensitive-information-term", label: "Sensitive-information language", value: "The message appears to request personal, identity, banking, card, or tax details." });
   if (hasPayment) observations.push({ id: "message.payment-term", label: "Payment language", value: "The message mentions money, fees, transfers, or payment details." });
   if (hasUrgency) observations.push({ id: "message.urgency-term", label: "Urgency language", value: "The message includes a deadline, threat, or pressure to act quickly." });
 

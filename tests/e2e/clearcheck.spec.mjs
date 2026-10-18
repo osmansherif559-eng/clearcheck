@@ -9,14 +9,29 @@ test.describe("ClearCheck browser workflow", () => {
     page.on("pageerror", (error) => pageErrors.push(error.message));
     await page.goto("/");
     await expect(page).toHaveTitle(/ClearCheck/);
-    await expect(page.locator("h1")).toContainText("Not sure about a message? Check it first.");
+    await expect(page.locator("h1")).toHaveText("Check before you click.");
     const bodyFont = await page.locator("body").evaluate((element) => getComputedStyle(element).fontFamily);
     expect(bodyFont).toContain("Inter");
     const initialTheme = await page.locator("html").getAttribute("data-theme");
+    const initialColors = await page.evaluate(() => ({
+      body: getComputedStyle(document.body).backgroundColor,
+      home: getComputedStyle(document.querySelector(".home-page")).backgroundColor,
+      button: getComputedStyle(document.querySelector(".home-page .primary-button")).color,
+    }));
     await page.getByRole("button", { name: /Switch to (dark|light) mode/ }).click();
     const nextTheme = await page.locator("html").getAttribute("data-theme");
     expect(nextTheme).not.toBe(initialTheme);
     expect(await page.evaluate(() => localStorage.getItem("clearcheck-theme"))).toBe(nextTheme);
+    await page.waitForTimeout(350);
+    const nextColors = await page.evaluate(() => ({
+      body: getComputedStyle(document.body).backgroundColor,
+      home: getComputedStyle(document.querySelector(".home-page")).backgroundColor,
+      button: getComputedStyle(document.querySelector(".home-page .primary-button")).color,
+    }));
+    expect(nextColors.body).not.toBe(initialColors.body);
+    expect(nextColors.home).not.toBe(initialColors.home);
+    expect(initialColors.button).toMatch(/255/);
+    expect(nextColors.button).toMatch(/255/);
     await page.reload();
     expect(await page.locator("html").getAttribute("data-theme")).toBe(nextTheme);
     expect(consoleErrors, "browser console should not report errors").toEqual([]);
@@ -46,6 +61,77 @@ test.describe("ClearCheck browser workflow", () => {
       expect(metrics.overflow, `${width}px layout should not overflow`).toBe(false);
       expect(metrics.textareaWidth, `${width}px textarea should fit`).toBeLessThanOrEqual(metrics.viewportWidth);
     }
+  });
+
+  test("keeps the compact split hero usable at target viewports", async ({ page }) => {
+    for (const [width, height] of [[1366, 768], [1440, 900], [390, 844], [320, 720]]) {
+      await page.setViewportSize({ width, height });
+      await page.goto("/");
+      await expect(page.locator("h1")).toHaveText("Check before you click.");
+      await expect(page.locator(".checker-method")).toHaveCount(4);
+      const metrics = await page.evaluate(() => {
+        const hero = document.querySelector(".home-split-hero")?.getBoundingClientRect();
+        const copy = document.querySelector(".home-hero-copy")?.getBoundingClientRect();
+        const checker = document.querySelector(".home-hero-checker")?.getBoundingClientRect();
+        const card = document.querySelector(".home-page .checker-wrap")?.getBoundingClientRect();
+        const panel = document.querySelector(".home-page .checker-input-panel")?.getBoundingClientRect();
+        const textarea = document.querySelector(".home-page textarea")?.getBoundingClientRect();
+        const button = document.querySelector(".home-page .primary-button")?.getBoundingClientRect();
+        const root = document.documentElement;
+        return {
+          viewportWidth: window.innerWidth,
+          viewportHeight: window.innerHeight,
+          rootScrollWidth: root.scrollWidth,
+          bodyScrollWidth: document.body.scrollWidth,
+          heroTop: hero?.top ?? 0,
+          copyRight: copy?.right ?? 0,
+          checkerLeft: checker?.left ?? 0,
+          checkerTop: checker?.top ?? 0,
+          cardBottom: card?.bottom ?? 0,
+          panelWidth: panel?.width ?? 0,
+          textareaWidth: textarea?.width ?? 0,
+          buttonWidth: button?.width ?? 0,
+        };
+      });
+      expect(metrics.rootScrollWidth, `${width}px root should not overflow`).toBeLessThanOrEqual(metrics.viewportWidth);
+      expect(metrics.bodyScrollWidth, `${width}px body should not overflow`).toBeLessThanOrEqual(metrics.viewportWidth);
+      expect(metrics.checkerTop, `${width}px checker should enter the viewport`).toBeLessThan(metrics.viewportHeight);
+      expect(metrics.textareaWidth, `${width}px textarea should fit the checker`).toBeLessThanOrEqual(metrics.panelWidth + 1);
+      expect(Math.abs(metrics.buttonWidth - metrics.panelWidth), `${width}px Analyze should span the input panel`).toBeLessThanOrEqual(2);
+      if (width >= 800) {
+        expect(metrics.checkerLeft, `${width}px checker should sit beside the introduction`).toBeGreaterThan(metrics.copyRight);
+        expect(metrics.cardBottom, `${width}px checker should fit without page scrolling`).toBeLessThanOrEqual(metrics.viewportHeight);
+      }
+    }
+  });
+
+  test("analyzes from the homepage and keeps the result dialog accessible", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto("/");
+    await page.getByLabel("Suspicious message or URL").fill("URGENT: Your bank account will be locked today. Send us your one-time verification code now to keep access.");
+    await page.getByRole("button", { name: "Analyze" }).click();
+    await expect(page.getByRole("dialog")).toBeVisible();
+    await expect(page.getByRole("heading", { name: "High concern" })).toBeVisible();
+    await expect(page.getByText("Were you expecting a security notification from this service?")).toBeVisible();
+    const dialogMetrics = await page.locator("dialog[open]").evaluate((dialog) => {
+      const rect = dialog.getBoundingClientRect();
+      const panel = dialog.querySelector(".result-dialog-panel");
+      return { left: rect.left, right: rect.right, top: rect.top, bottom: rect.bottom, panelWidth: panel?.clientWidth ?? 0, panelScrollWidth: panel?.scrollWidth ?? 0 };
+    });
+    expect(dialogMetrics.left).toBeGreaterThanOrEqual(0);
+    expect(dialogMetrics.right).toBeLessThanOrEqual(390);
+    expect(dialogMetrics.top).toBeGreaterThanOrEqual(0);
+    expect(dialogMetrics.bottom).toBeLessThanOrEqual(844);
+    expect(dialogMetrics.panelScrollWidth).toBeLessThanOrEqual(dialogMetrics.panelWidth + 1);
+    await page.getByRole("button", { name: "No, it was unexpected." }).click();
+    await expect(page.getByText(/Your answer adds context|Your answer describes/)).toBeVisible();
+    await page.getByRole("button", { name: "New check" }).click();
+    await expect(page.getByLabel("Suspicious message or URL")).toHaveValue("");
+    await page.getByLabel("Suspicious message or URL").fill("Reminder: your dental appointment is tomorrow at 10:00 AM. Reply YES to confirm.");
+    await page.getByRole("button", { name: "Analyze" }).click();
+    await expect(page.getByRole("heading", { name: "No major warning signs found" })).toBeVisible();
+    await expect(page.getByText("No major warning signs were found by the current checks. This does not prove the message is safe.")).toBeVisible();
+    await expect(page.getByText("0 of 0")).toHaveCount(0);
   });
 
   test("analyzes a sample in a dialog, answers context, opens the report, and resets", async ({ page }) => {
@@ -102,6 +188,16 @@ test.describe("ClearCheck browser workflow", () => {
     await expect(page.getByText(/No QR code was detected/)).toBeVisible();
   });
 
+  test("keeps the upload-file entry point connected to local image inspection", async ({ page }) => {
+    await page.goto("/");
+    const fileChooserPromise = page.waitForEvent("filechooser");
+    await page.getByRole("button", { name: "Upload a file" }).click();
+    const fileChooser = await fileChooserPromise;
+    await fileChooser.setFiles(path.join(process.cwd(), "public/icons/icon-192.png"));
+    await expect(page.getByRole("heading", { name: /Read a screenshot without uploading it/ })).toBeVisible();
+    await expect(page.getByAltText("Local preview of the selected suspicious message image")).toBeVisible();
+  });
+
   test("runs OCR locally and exposes an editable review before analysis", async ({ page }) => {
     test.setTimeout(120_000);
     await page.goto("/check");
@@ -141,6 +237,6 @@ test("production shell can reload offline after service worker preparation", asy
   await page.waitForFunction(() => Boolean(navigator.serviceWorker.controller));
   await context.setOffline(true);
   await page.reload();
-  await expect(page.locator("h1")).toContainText("Not sure about a message? Check it first.");
+  await expect(page.locator("h1")).toHaveText("Check before you click.");
   await context.setOffline(false);
 });
