@@ -9,6 +9,7 @@
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
+    "evaluate:corpus": "vitest run src/lib/analysis/corpus-evaluation.test.ts",
     "test:e2e": "playwright test",
     "test:watch": "vitest"
   },

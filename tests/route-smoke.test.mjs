@@ -8,12 +8,13 @@ import { fileURLToPath } from "node:url";
 const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const nextBin = path.join(projectRoot, "node_modules", "next", "dist", "bin", "next");
 const routes = [
-  ["/", "Check before you click."],
+  ["/", "Not sure about a message? Check it first."],
   ["/check", "What are you unsure about?"],
   ["/recover", "Something happened."],
   ["/learn", "Small details are worth a pause."],
   ["/privacy", "Your message is yours."],
   ["/about", "Indicators are not proof."],
+  ["/report", "No report is open."],
 ];
 
 let appProcess;

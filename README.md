@@ -19,6 +19,8 @@ ClearCheck is a privacy-first message and link investigation tool. It explains s
 - Installable PWA metadata, original ClearCheck icons, a scoped service worker, offline shell fallback, and install guidance for Android and iOS Safari.
 - Sample cases, reset, copy report with explicit original-content choice, print report, recovery entry points, and accessible keyboard focus states.
 - Learn, Privacy, and About pages.
+- A focused checker homepage with an in-memory result dialog, optional context questions, and a full `/report` breakdown route. Reports are intentionally lost on a full reload or new tab.
+- A versioned synthetic scam-regression corpus with provenance metadata and offline evaluation via `npm run evaluate:corpus`.
 - No account, database, history, external AI, reputation API, URL fetching, analytics, or third-party font requests.
 - OCR uses locally served, pinned Tesseract.js worker/core/English model assets; QR decoding uses the locally bundled `jsqr` library. No image, OCR text, or QR payload is transmitted.
 
@@ -59,6 +61,7 @@ npm run typecheck
 npm run lint
 npm run build
 npm run test:e2e
+npm run evaluate:corpus
 ```
 
 The browser suite starts the production server and verifies CSS rendering, theme switching, mobile navigation, responsive overflow, the sample/analyze/reset flow, no external requests during local analysis, manifest/icon delivery, and offline reload after service-worker preparation. Chromium must be installed for the browser suite; `npx playwright install chromium` is the supported setup command.

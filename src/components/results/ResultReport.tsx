@@ -16,7 +16,7 @@ export default function ResultReport({ result, originalInput, onCopy, copied, on
   const assessment = assessmentCopy[result.assessment];
   const [includeInput, setIncludeInput] = useState(false);
   return (
-    <section className="report" aria-live="polite" aria-labelledby="report-title">
+    <section className="report" aria-labelledby="report-title">
       <div className={`assessment-banner ${result.assessment}`}>
         <div className="assessment-icon" aria-hidden="true"><Icon name={assessment.icon} size={22} /></div>
         <div><span className="section-kicker">Assessment · {result.mode} analysis</span><h2 id="report-title">{assessment.label}</h2><p>{assessment.eyebrow}. {result.summary}</p></div>

@@ -9,7 +9,7 @@ test.describe("ClearCheck browser workflow", () => {
     page.on("pageerror", (error) => pageErrors.push(error.message));
     await page.goto("/");
     await expect(page).toHaveTitle(/ClearCheck/);
-    await expect(page.locator("h1")).toContainText("Check before you click.");
+    await expect(page.locator("h1")).toContainText("Not sure about a message? Check it first.");
     const bodyFont = await page.locator("body").evaluate((element) => getComputedStyle(element).fontFamily);
     expect(bodyFont).toContain("Inter");
     const initialTheme = await page.locator("html").getAttribute("data-theme");
@@ -48,12 +48,26 @@ test.describe("ClearCheck browser workflow", () => {
     }
   });
 
-  test("analyzes a sample, presents evidence, and resets", async ({ page }) => {
-    await page.goto("/");
+  test("analyzes a sample in a dialog, answers context, opens the report, and resets", async ({ page }) => {
+    await page.goto("/check");
     await page.getByRole("button", { name: /Account alert/ }).click();
+    await expect(page.getByRole("dialog")).toBeVisible();
     await expect(page.getByRole("heading", { name: "High concern" })).toBeVisible();
     await expect(page.getByText("Evidence from your input").first()).toBeVisible();
     await expect(page.getByRole("paragraph").filter({ hasText: "Do not share the code or password." }).first()).toBeVisible();
+    await expect(page.getByText("Were you expecting a security notification from this service?")).toBeVisible();
+    await page.getByRole("button", { name: "No, it was unexpected." }).click();
+    await expect(page.getByText(/Your answer adds context|Your answer describes/)).toBeVisible();
+    await page.getByRole("link", { name: /See full breakdown/ }).click();
+    await expect(page).toHaveURL(/\/report$/);
+    await expect(page.getByRole("heading", { name: "What ClearCheck found." })).toBeVisible();
+    expect(await page.evaluate(() => ({ local: Object.keys(localStorage), session: Object.keys(sessionStorage) }))).toEqual({ local: [], session: [] });
+    expect(page.url()).not.toMatch(/URGENT|verification|bank/i);
+    await page.goBack();
+    await page.getByRole("button", { name: /View result/ }).click();
+    await page.keyboard.press("Escape");
+    await expect(page.getByRole("dialog")).toHaveCount(0);
+    await page.getByRole("button", { name: /View result/ }).click();
     await page.getByRole("button", { name: "New check" }).click();
     await expect(page.getByRole("heading", { name: "High concern" })).toHaveCount(0);
     await expect(page.getByLabel("Suspicious message or URL")).toHaveValue("");
@@ -67,6 +81,15 @@ test.describe("ClearCheck browser workflow", () => {
     await page.getByRole("button", { name: /Analyze safely/ }).click();
     await expect(page.getByRole("heading", { name: "High concern" })).toBeVisible();
     expect(requests.filter((url) => !url.startsWith("http://127.0.0.1:3106/")).length).toBe(0);
+  });
+
+  test("uses interaction context to open the matching recovery checklist", async ({ page }) => {
+    await page.goto("/check");
+    await page.getByRole("button", { name: /Account alert/ }).click();
+    await page.getByRole("button", { name: "Shared a one-time or recovery code" }).click();
+    await page.getByRole("link", { name: /Open recovery coach/ }).click();
+    await expect(page).toHaveURL(/\/recover$/);
+    await expect(page.getByRole("heading", { name: "Shared an OTP or recovery code" })).toBeVisible();
   });
 
   test("supports the local screenshot and QR review entry point", async ({ page }) => {
@@ -118,6 +141,6 @@ test("production shell can reload offline after service worker preparation", asy
   await page.waitForFunction(() => Boolean(navigator.serviceWorker.controller));
   await context.setOffline(true);
   await page.reload();
-  await expect(page.locator("h1")).toContainText("Check before you click.");
+  await expect(page.locator("h1")).toContainText("Not sure about a message? Check it first.");
   await context.setOffline(false);
 });

@@ -5,6 +5,7 @@ import Header from "@/components/layout/Header";
 import InstallPrompt from "@/components/layout/InstallPrompt";
 import ServiceWorkerRegister from "@/components/layout/ServiceWorkerRegister";
 import ThemeProvider from "@/components/layout/ThemeProvider";
+import ReportSessionProvider from "@/components/report/ReportSessionProvider";
 import Icon from "@/components/ui/Icon";
 import "./globals.css";
 
@@ -31,7 +32,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
     <html lang="en" suppressHydrationWarning>
       <head><script dangerouslySetInnerHTML={{ __html: themeScript }} /></head>
       <body>
-        <ThemeProvider><a className="skip-link" href="#main-content">Skip to content</a><Header /><div id="main-content">{children}</div><InstallPrompt /><footer className="site-footer"><div className="shell footer-inner"><Link className="footer-brand" href="/"><span className="brand-symbol"><Icon name="shield-check" size={16} /></span><span>ClearCheck</span></Link><p>Local-first analysis for clearer, safer decisions.</p><div className="footer-links"><Link href="/recover">Recovery</Link><Link href="/learn">Learn</Link><Link href="/privacy">Privacy</Link><Link href="/about">Limitations</Link></div></div></footer><ServiceWorkerRegister /></ThemeProvider>
+        <ThemeProvider><ReportSessionProvider><a className="skip-link" href="#main-content">Skip to content</a><Header /><div id="main-content" tabIndex={-1}>{children}</div><InstallPrompt /><footer className="site-footer"><div className="shell footer-inner"><Link className="footer-brand" href="/"><span className="brand-symbol"><Icon name="shield-check" size={16} /></span><span>ClearCheck</span></Link><p>Local-first analysis for clearer, safer decisions.</p><div className="footer-links"><Link href="/recover">Recovery</Link><Link href="/learn">Learn</Link><Link href="/privacy">Privacy</Link><Link href="/about">Limitations</Link></div></div></footer><ServiceWorkerRegister /></ReportSessionProvider></ThemeProvider>
       </body>
     </html>
   );

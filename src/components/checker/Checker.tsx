@@ -1,9 +1,10 @@
 "use client";
 
-import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
+import { FormEvent, useMemo, useState } from "react";
 import { analyze, validateInput } from "@/lib/analysis/analyze";
 import type { AnalysisMode, AnalysisResult } from "@/lib/analysis/types";
-import ResultReport from "@/components/results/ResultReport";
+import ResultDialog from "@/components/report/ResultDialog";
+import { useReportSession } from "@/components/report/ReportSessionProvider";
 import Icon, { type IconName } from "@/components/ui/Icon";
 import ImageInspector from "./ImageInspector";
 import RecoveryCoach from "@/components/recovery/RecoveryCoach";
@@ -45,14 +46,15 @@ const samples: Sample[] = [
   },
 ];
 
-export default function Checker() {
+export default function Checker({ showSamples = true, showRecovery = true }: { showSamples?: boolean; showRecovery?: boolean }) {
   const [inputMethod, setInputMethod] = useState<"text" | "image">("text");
-  const [input, setInput] = useState("");
+  const { report: existingReport, setReport, clearReport } = useReportSession();
+  const [input, setInput] = useState(existingReport?.originalInput ?? "");
   const [mode, setMode] = useState<AnalysisMode>("auto");
-  const [result, setResult] = useState<AnalysisResult | null>(null);
+  const [result, setResult] = useState<AnalysisResult | null>(existingReport?.result ?? null);
+  const [resultVersion, setResultVersion] = useState(0);
   const [error, setError] = useState<string | null>(null);
-  const [copied, setCopied] = useState(false);
-  const resultRef = useRef<HTMLElement>(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
 
   const inputHint = useMemo(() => {
     if (mode === "url") return "https://example.com/account/verify…";
@@ -60,14 +62,13 @@ export default function Checker() {
     return "“Your account will be locked today…” or https://example.com/verify…";
   }, [mode]);
 
-  useEffect(() => {
-    if (!result || !window.matchMedia("(max-width: 800px)").matches) return;
-    window.requestAnimationFrame(() => {
-      const resultTop = resultRef.current?.getBoundingClientRect().top;
-      if (resultTop === undefined) return;
-      window.scrollTo({ top: Math.max(0, window.scrollY + resultTop - 76), behavior: "smooth" });
-    });
-  }, [result]);
+  function completeAnalysis(nextResult: AnalysisResult, sourceInput: string) {
+    setResult(nextResult);
+    setResultVersion((current) => current + 1);
+    setReport({ result: nextResult, originalInput: sourceInput });
+    setDialogOpen(true);
+    setError(null);
+  }
 
   function submit(event?: FormEvent) {
     event?.preventDefault();
@@ -75,15 +76,15 @@ export default function Checker() {
     if (validationError) {
       setError(validationError);
       setResult(null);
+      clearReport();
       return;
     }
     try {
-      setResult(analyze(input, mode));
-      setError(null);
-      setCopied(false);
+      completeAnalysis(analyze(input, mode), input);
     } catch (analysisError) {
       setError(analysisError instanceof Error ? analysisError.message : "We could not analyze that input.");
       setResult(null);
+      clearReport();
     }
   }
 
@@ -91,46 +92,26 @@ export default function Checker() {
     setInput(sample.input);
     setMode(sample.mode);
     setError(null);
-    setResult(analyze(sample.input, sample.mode));
-    setCopied(false);
+    completeAnalysis(analyze(sample.input, sample.mode), sample.input);
   }
 
   function reset() {
+    setDialogOpen(false);
     setInput("");
     setResult(null);
     setError(null);
-    setCopied(false);
+    clearReport();
   }
 
   function editInput() {
+    setDialogOpen(false);
     setInputMethod("text");
     window.requestAnimationFrame(() => document.getElementById("check-input")?.focus());
   }
 
-  async function copyReport(includeInput: boolean) {
-    if (!result) return;
-    const lines = [
-      `ClearCheck assessment: ${result.assessment.replaceAll("_", " ")}`,
-      result.summary,
-      "",
-      ...result.findings.flatMap((finding) => [
-        `${finding.title} [${finding.severity}]`,
-        `Evidence: ${finding.evidence}`,
-        `Why it matters: ${finding.explanation}`,
-        `Next step: ${finding.action}`,
-        "",
-      ]),
-      "Unknowns:",
-      ...result.unknowns.map((unknown) => `- ${unknown}`),
-    ];
-    if (includeInput) lines.unshift("Submitted content:\n" + input, "");
-    try {
-      await navigator.clipboard.writeText(lines.join("\n"));
-      setCopied(true);
-      window.setTimeout(() => setCopied(false), 2200);
-    } catch {
-      setError("Copy is unavailable in this browser. You can use Print to save the report instead.");
-    }
+  function closeDialog() {
+    setDialogOpen(false);
+    window.requestAnimationFrame(() => document.getElementById("check-input")?.focus());
   }
 
   return (
@@ -155,20 +136,19 @@ export default function Checker() {
               <div className="checker-actions"><button className="primary-button" type="submit">{mode === "url" ? "Inspect URL" : "Analyze safely"}<Icon name="arrow-up-right" size={17} /></button><button className="quiet-button" type="button" onClick={reset} disabled={!input && !result}><Icon name="refresh" size={15} /> Clear</button></div>
             </form>
             <p className="privacy-note" id="input-privacy"><Icon name="lock" size={13} /> Your input stays in this browser. Nothing is saved or sent to an external AI service.</p>
-          </div> : <ImageInspector onAnalyze={(nextInput, nextMode) => { setInput(nextInput); setMode(nextMode); setInputMethod("text"); setResult(analyze(nextInput, nextMode)); setError(null); }} />}
-        </section>
-
-        <section className="result-panel" ref={resultRef} aria-label={result ? "ClearCheck result" : "ClearCheck result preview"} aria-live="polite">
-          {result ? <ResultReport result={result} originalInput={input} onCopy={copyReport} copied={copied} onPrint={() => window.print()} onReset={reset} onEdit={editInput} onRecovery={() => document.getElementById("recovery-coach")?.scrollIntoView({ behavior: "smooth", block: "start" })} /> : <div className="result-empty"><div className="result-empty-mark"><Icon name="search" size={18} /></div><span className="section-kicker">Your result</span><h2>Evidence, not a mystery score.</h2><p>Analyze something to see the signals ClearCheck found, why they matter, and a safer next step.</p><dl><div><dt>Assessment</dt><dd>A concise concern level</dd></div><div><dt>Evidence</dt><dd>Words or URL details from your input</dd></div><div><dt>Action</dt><dd>A practical way to verify independently</dd></div></dl></div>}
+          </div> : <ImageInspector onAnalyze={(nextInput, nextMode) => { setInput(nextInput); setMode(nextMode); setInputMethod("text"); completeAnalysis(analyze(nextInput, nextMode), nextInput); }} />}
         </section>
       </div>
 
-      {inputMethod === "text" && <div className="samples-block">
+      {result && !dialogOpen && <div className="reopen-result"><span><strong>Your result is ready.</strong><small>It remains available only while this page is open.</small></span><button className="secondary-button" type="button" onClick={() => setDialogOpen(true)}>View result <Icon name="arrow-up-right" size={15} /></button></div>}
+
+      {showSamples && inputMethod === "text" && <div className="samples-block">
          <div className="samples-heading"><div><span className="section-kicker">Try a sample</span><h2>See how the signals work</h2></div><span className="samples-note">Safe examples, no real links</span></div>
          <div className="sample-grid">{samples.map((sample) => <button className="sample-card" key={sample.label} type="button" onClick={() => loadSample(sample)}><span className={`sample-icon ${sample.tone}`}><Icon name={sample.icon} size={16} /></span><span><strong>{sample.label}</strong><small>{sample.description}</small></span><span className="sample-arrow" aria-hidden="true"><Icon name="arrow-up-right" size={16} /></span></button>)}</div>
        </div>}
 
-       <RecoveryCoach compact />
+        {showRecovery && <RecoveryCoach compact />}
+       {result && <ResultDialog key={resultVersion} result={result} open={dialogOpen} onClose={closeDialog} onEdit={editInput} onReset={reset} />}
     </div>
   );
 }

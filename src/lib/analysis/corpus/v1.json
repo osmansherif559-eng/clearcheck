@@ -1,0 +1,301 @@
+{
+  "schemaVersion": "1.0.0",
+  "corpusVersion": "1.0.0",
+  "rulesetVersion": "1.1.0",
+  "provenance": {
+    "policy": "Synthetic, redacted, non-functional examples written for offline regression coverage. No user messages, live payloads, credentials, or active destinations are included.",
+    "sources": [
+      {
+        "name": "CISA Recognize and Report Phishing",
+        "url": "https://www.cisa.gov/secure-our-world/recognize-and-report-phishing",
+        "license": "U.S. government educational material; paraphrased with attribution",
+        "accessed": "2026-10-18",
+        "use": "Warning-sign taxonomy only; no page text or media redistributed."
+      },
+      {
+        "name": "UCI SMS Spam Collection",
+        "url": "https://archive.ics.uci.edu/dataset/228/sms+spam+collection",
+        "license": "CC BY 4.0; Almeida et al., DOI 10.24432/C5CC84",
+        "accessed": "2026-10-18",
+        "use": "Evaluated as a possible benchmark; no raw rows are redistributed because the corpus below is synthetic."
+      },
+      {
+        "name": "UK NCSC QR code guidance",
+        "url": "https://www.ncsc.gov.uk/blog-post/qr-codes-whats-real-risk",
+        "license": "Open Government Licence v3; concepts paraphrased with attribution",
+        "accessed": "2026-10-18",
+        "use": "QR-risk concepts only; no images or live QR payloads."
+      },
+      {
+        "name": "Investor.gov Types of Fraud",
+        "url": "https://www.investor.gov/protect-your-investments/fraud/types-fraud",
+        "license": "U.S. government educational material; paraphrased with attribution",
+        "accessed": "2026-10-18",
+        "use": "Investment-fraud category vocabulary only."
+      }
+    ]
+  },
+  "cases": [
+    {
+      "id": "account-takeover-urgent-01",
+      "category": "account-takeover",
+      "label": "synthetic-suspicious",
+      "provenance": "Synthetic adaptation of common account-security warning signs.",
+      "mode": "message",
+      "input": "URGENT: Your bank account will be locked today. Verify your account now at https://example.org/account.",
+      "expect": { "assessment": "high_concern", "includeFindingIds": ["message.urgency-threat", "message.impersonation"] }
+    },
+    {
+      "id": "otp-code-01",
+      "category": "otp-and-recovery-code-theft",
+      "label": "synthetic-suspicious",
+      "provenance": "Synthetic adaptation of unsolicited code-disclosure requests.",
+      "mode": "message",
+      "input": "Security team: send the one-time verification code you just received so we can finish protecting your login.",
+      "expect": { "assessment": "high_concern", "includeFindingIds": ["message.credential-request"] }
+    },
+    {
+      "id": "bank-payment-01",
+      "category": "bank-and-payment-impersonation",
+      "label": "synthetic-suspicious",
+      "provenance": "Synthetic adaptation of bank impersonation and urgent transfer pressure.",
+      "mode": "message",
+      "input": "Final notice from your bank: your payment is blocked. Pay the transfer immediately to prevent account closure.",
+      "expect": { "assessment": "high_concern", "includeFindingIds": ["message.payment-pressure", "message.impersonation"] }
+    },
+    {
+      "id": "delivery-fee-01",
+      "category": "package-delivery-fee",
+      "label": "synthetic-suspicious",
+      "provenance": "Synthetic adaptation of package tracking smishing guidance.",
+      "mode": "message",
+      "input": "Your delivery is held at the courier depot. Pay the small redelivery fee immediately to release the package.",
+      "expect": { "assessment": "high_concern", "includeFindingIds": ["message.payment-pressure", "message.impersonation"] }
+    },
+    {
+      "id": "job-fee-01",
+      "category": "job-recruitment-fee",
+      "label": "synthetic-suspicious",
+      "provenance": "Synthetic adaptation of work-from-home and recruitment-fee warning signs.",
+      "mode": "message",
+      "input": "Congratulations, you got the job! Pay the $250 onboarding fee upfront today to secure your position.",
+      "expect": { "assessment": "high_concern", "includeFindingIds": ["message.payment-pressure"] }
+    },
+    {
+      "id": "invoice-refund-01",
+      "category": "invoice-refund-payment-demand",
+      "label": "synthetic-suspicious",
+      "provenance": "Synthetic invoice and refund lure with reserved-domain-free text.",
+      "mode": "message",
+      "input": "Final notice: your invoice refund is waiting. Confirm your account details and pay the processing fee today.",
+      "expect": { "assessment": "high_concern", "includeFindingIds": ["message.payment-pressure"] }
+    },
+    {
+      "id": "investment-crypto-01",
+      "category": "investment-and-cryptocurrency-fraud",
+      "label": "synthetic-suspicious",
+      "provenance": "Synthetic adaptation of investment-fraud education concepts.",
+      "mode": "message",
+      "input": "Guaranteed investment returns today: send bitcoin to this wallet and double your money by Friday.",
+      "expect": { "assessment": "high_concern", "includeFindingIds": ["message.investment-pressure", "message.payment-pressure"] }
+    },
+    {
+      "id": "romance-gift-card-01",
+      "category": "romance-and-relationship-manipulation",
+      "label": "synthetic-suspicious",
+      "provenance": "Synthetic, non-graphic relationship-manipulation example.",
+      "mode": "message",
+      "input": "I love you and need your help immediately. Send a gift card today so I can get home.",
+      "expect": { "assessment": "high_concern", "includeFindingIds": ["message.payment-pressure"] }
+    },
+    {
+      "id": "family-emergency-01",
+      "category": "family-emergency-impersonation",
+      "label": "synthetic-suspicious",
+      "provenance": "Synthetic family-emergency impersonation example.",
+      "mode": "message",
+      "input": "Mom: I am stranded and this is an emergency. Send a gift card immediately; I cannot call.",
+      "expect": { "assessment": "high_concern", "includeFindingIds": ["message.family-emergency", "message.payment-pressure"] }
+    },
+    {
+      "id": "tax-office-01",
+      "category": "government-tax-law-enforcement-impersonation",
+      "label": "synthetic-suspicious",
+      "provenance": "Synthetic adaptation of government impersonation guidance.",
+      "mode": "message",
+      "input": "Tax office action is required: pay the overdue balance today or your account will be closed.",
+      "expect": { "assessment": "high_concern", "includeFindingIds": ["message.payment-pressure", "message.impersonation"] }
+    },
+    {
+      "id": "tech-support-01",
+      "category": "tech-support-remote-access",
+      "label": "synthetic-suspicious",
+      "provenance": "Synthetic adaptation of unexpected technical-support warnings.",
+      "mode": "message",
+      "input": "Microsoft Support: a virus was detected. Call immediately and install remote support before your device is locked.",
+      "expect": { "assessment": "high_concern", "includeFindingIds": ["message.tech-support"] }
+    },
+    {
+      "id": "prize-fee-01",
+      "category": "shopping-giveaway-prize",
+      "label": "synthetic-suspicious",
+      "provenance": "Synthetic prize and advance-fee example.",
+      "mode": "message",
+      "input": "You won a prize! Pay the small claim fee immediately to release your giveaway.",
+      "expect": { "assessment": "high_concern", "includeFindingIds": ["message.payment-pressure"] }
+    },
+    {
+      "id": "subscription-renewal-01",
+      "category": "subscription-renewal-payment-failure",
+      "label": "synthetic-suspicious",
+      "provenance": "Synthetic subscription-renewal phishing example.",
+      "mode": "message",
+      "input": "Your Netflix subscription payment failed. Click the link and confirm payment today to avoid cancellation.",
+      "expect": { "assessment": "high_concern", "includeFindingIds": ["message.payment-pressure", "message.impersonation"] }
+    },
+    {
+      "id": "qr-bank-01",
+      "category": "qr-code-phishing",
+      "label": "synthetic-suspicious",
+      "provenance": "Synthetic quishing example based on public QR-risk education.",
+      "mode": "message",
+      "input": "Scan this QR code immediately to verify your bank account and prevent a security lock.",
+      "expect": { "assessment": "high_concern", "includeFindingIds": ["message.qr-phishing", "message.urgency-threat"] }
+    },
+    {
+      "id": "url-lookalike-01",
+      "category": "deceptive-url-patterns",
+      "label": "synthetic-suspicious",
+      "provenance": "Reserved-domain URL fixture; it is never opened.",
+      "mode": "url",
+      "input": "https://paypal-login.example.net/verify",
+      "expect": { "assessment": "needs_caution", "includeFindingIds": ["url.lookalike-brand"] }
+    },
+    {
+      "id": "download-attachment-01",
+      "category": "malicious-download-and-attachment-lure",
+      "label": "synthetic-suspicious",
+      "provenance": "Synthetic attachment lure with no file or active destination.",
+      "mode": "message",
+      "input": "Final notice: download the invoice attachment immediately or your account will be charged.",
+      "expect": { "assessment": "high_concern", "includeFindingIds": ["message.download-lure"] }
+    },
+    {
+      "id": "social-copyright-01",
+      "category": "social-media-recovery-and-copyright-phishing",
+      "label": "synthetic-suspicious",
+      "provenance": "Synthetic social-account alert with no real platform URL.",
+      "mode": "message",
+      "input": "Copyright alert: verify your Instagram account immediately or your profile will be removed.",
+      "expect": { "assessment": "needs_caution", "includeFindingIds": ["message.social-account-alert", "message.urgency-threat"] }
+    },
+    {
+      "id": "marketplace-shipping-01",
+      "category": "marketplace-buyer-seller-payment-scam",
+      "label": "synthetic-suspicious",
+      "provenance": "Synthetic marketplace shipping-fee example.",
+      "mode": "message",
+      "input": "The buyer overpaid. Send the shipping fee today so the marketplace can release your payment.",
+      "expect": { "assessment": "high_concern", "includeFindingIds": ["message.marketplace-payment", "message.payment-pressure"] }
+    },
+    {
+      "id": "private-channel-01",
+      "category": "private-channel-change-request",
+      "label": "synthetic-suspicious",
+      "provenance": "Synthetic channel-change and payment-detail example.",
+      "mode": "message",
+      "input": "I have a new payment account. Keep this private and contact me on WhatsApp to complete the transfer.",
+      "expect": { "assessment": "needs_caution", "includeFindingIds": ["message.channel-change"] }
+    },
+    {
+      "id": "url-ip-01",
+      "category": "deceptive-url-patterns",
+      "label": "synthetic-suspicious",
+      "provenance": "Documentation-only TEST-NET address from RFC 5737.",
+      "mode": "url",
+      "input": "https://192.0.2.8/login",
+      "expect": { "assessment": "high_concern", "includeFindingIds": ["url.ip-host"] }
+    },
+    {
+      "id": "url-punycode-01",
+      "category": "deceptive-url-patterns",
+      "label": "synthetic-suspicious",
+      "provenance": "Reserved example hostname using encoded-character syntax.",
+      "mode": "url",
+      "input": "https://xn--example-9za.example/verify",
+      "expect": { "assessment": "needs_caution", "includeFindingIds": ["url.punycode"] }
+    },
+    {
+      "id": "url-port-01",
+      "category": "deceptive-url-patterns",
+      "label": "synthetic-suspicious",
+      "provenance": "Reserved example hostname with an unusual port; never opened.",
+      "mode": "url",
+      "input": "https://example.org:8080/verify",
+      "expect": { "assessment": "needs_caution", "includeFindingIds": ["url.unusual-port"] }
+    },
+    {
+      "id": "url-deep-subdomain-01",
+      "category": "deceptive-url-patterns",
+      "label": "synthetic-suspicious",
+      "provenance": "Reserved example hostname with multiple labels.",
+      "mode": "url",
+      "input": "https://login.verify.account.notice.example.org/start",
+      "expect": { "assessment": "needs_caution", "includeFindingIds": ["url.deep-subdomain"] }
+    },
+    {
+      "id": "url-shortener-01",
+      "category": "deceptive-url-patterns",
+      "label": "synthetic-suspicious",
+      "provenance": "Shortener hostname is used only as a text fixture and is never requested.",
+      "mode": "url",
+      "input": "https://bit.ly/example",
+      "expect": { "assessment": "needs_caution", "includeFindingIds": ["url.shortener"] }
+    },
+    {
+      "id": "url-embedded-credentials-01",
+      "category": "deceptive-url-patterns",
+      "label": "synthetic-suspicious",
+      "provenance": "Reserved host with dummy credentials; never opened.",
+      "mode": "url",
+      "input": "https://guest:guest@example.org/login",
+      "expect": { "assessment": "high_concern", "includeFindingIds": ["url.embedded-credentials"] }
+    },
+    {
+      "id": "url-scheme-01",
+      "category": "deceptive-url-patterns",
+      "label": "synthetic-suspicious",
+      "provenance": "Non-web scheme is inspected as text only and never opened.",
+      "mode": "url",
+      "input": "custom-scheme:example",
+      "expect": { "assessment": "high_concern", "includeFindingIds": ["url.unsupported-scheme"] }
+    },
+    {
+      "id": "benign-appointment-01",
+      "category": "legitimate-benign-counterexample",
+      "label": "synthetic-benign",
+      "provenance": "Synthetic routine reminder with no sensitive request.",
+      "mode": "message",
+      "input": "Reminder: your dental appointment is tomorrow at 10:00 AM. Reply YES to confirm.",
+      "expect": { "assessment": "no_major_indicators", "includeFindingIds": [], "excludeFindingIds": ["message.payment-pressure", "message.credential-request"] }
+    },
+    {
+      "id": "benign-calendar-01",
+      "category": "legitimate-benign-counterexample",
+      "label": "synthetic-benign",
+      "provenance": "Synthetic calendar notification containing routine timing language.",
+      "mode": "message",
+      "input": "Your library meeting is confirmed for Thursday at 3 PM. Reply YES if you need to reschedule.",
+      "expect": { "assessment": "no_major_indicators", "includeFindingIds": [] }
+    },
+    {
+      "id": "benign-trusted-url-01",
+      "category": "legitimate-benign-counterexample",
+      "label": "synthetic-benign",
+      "provenance": "Reserved domain fixture demonstrating that an ordinary HTTPS URL is not automatically unsafe.",
+      "mode": "url",
+      "input": "https://example.com/calendar/appointments/2026/10/17/confirm?invite=abc123&source=calendar",
+      "expect": { "assessment": "no_major_indicators", "includeFindingIds": [] }
+    }
+  ]
+}

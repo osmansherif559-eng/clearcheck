@@ -1,4 +1,4 @@
-export const RULESET_VERSION = "1.0.0";
+export const RULESET_VERSION = "1.1.0";
 
 export type AnalysisMode = "auto" | "message" | "url";
 export type ResolvedMode = "message" | "url";
